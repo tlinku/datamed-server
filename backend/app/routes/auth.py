@@ -1,6 +1,7 @@
 from flask import Blueprint, request, jsonify, current_app
 from utilities.authentication import Authentication
 from werkzeug.security import check_password_hash
+from utilities.jwt_authentication import create_token
 
 auth_bp = Blueprint('auth', __name__)
 
@@ -38,38 +39,52 @@ def register():
             cur.close()
         if conn:
             current_app.db_pool.putconn(conn)
-@auth_bp.route('/auth/login', methods=['POST'])
 
+@auth_bp.route('/auth/login', methods=['POST'])
 def login():
     data = request.get_json()
     conn = None
     cur = None
     
-    if not data or not data.get('email') or not data.get('password'):
-        return jsonify({'error': 'Missing email or password'}), 400
-        
     try:
+        # Add debug print
+        print("Received login request:", data)
+        
+        if not data or not data.get('email') or not data.get('password'):
+            return jsonify({'error': 'Missing email or password'}), 400
+        
         conn = current_app.db_pool.getconn()
         cur = conn.cursor()
         
-        # Get user from database
+        # Add debug print
+        print("Connected to database")
+        
         cur.execute(
             "SELECT id, email, password_hash FROM users WHERE email = %s",
             (data['email'],)
         )
         user = cur.fetchone()
         
-        # Check if user exists and password matches
+        # Add debug print
+        print("User found:", user)
+        
         if not user or not check_password_hash(user[2], data['password']):
             return jsonify({'error': 'Invalid email or password'}), 401
             
+        # Check if TOKEN_KEY is configured
+        if 'TOKEN_KEY' not in current_app.config:
+            raise ValueError("TOKEN_KEY not configured")
+ 
+        
         return jsonify({
             'message': 'Login successful',
             'user_id': user[0],
-            'email': user[1]
+            'email': user[1],
+            'token': create_token(user[0])
         }), 200
             
     except Exception as e:
+        print("Error in login:", str(e))  # Debug print
         return jsonify({'error': str(e)}), 500
     finally:
         if cur:
@@ -83,7 +98,6 @@ def update_password_via_site():
     conn = None
     cur = None
     
-    # Validate request data
     if not data or not data.get('email') or not data.get('old_password') or not data.get('new_password'):
         return jsonify({'error': 'Missing required fields'}), 400
         
@@ -91,18 +105,15 @@ def update_password_via_site():
         conn = current_app.db_pool.getconn()
         cur = conn.cursor()
         
-        # Get current user data
         cur.execute(
             "SELECT id, password_hash FROM users WHERE email = %s",
             (data['email'],)
         )
         user = cur.fetchone()
         
-        # Verify user exists and old password matches
         if not user or not check_password_hash(user[1], data['old_password']):
             return jsonify({'error': 'Invalid credentials'}), 401
             
-        # Hash new password and update
         new_password_hash = Authentication.hash_password(data['new_password'])
         cur.execute(
             "UPDATE users SET password_hash = %s WHERE id = %s",
@@ -134,7 +145,6 @@ def delete_account():
         conn = current_app.db_pool.getconn()
         cur = conn.cursor()
         
-        # Verify user credentials
         cur.execute(
             "SELECT id, password_hash FROM users WHERE email = %s",
             (data['email'],)
@@ -144,13 +154,11 @@ def delete_account():
         if not user or not check_password_hash(user[1], data['password']):
             return jsonify({'error': 'Invalid credentials'}), 401
             
-        # Delete user's prescriptions first (foreign key constraint)
         cur.execute(
             "DELETE FROM prescriptions WHERE user_id = %s",
             (user[0],)
         )
         
-        # Delete user account
         cur.execute(
             "DELETE FROM users WHERE id = %s",
             (user[0],)

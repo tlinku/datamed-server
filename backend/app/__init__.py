@@ -1,15 +1,21 @@
 from flask import Flask
 from psycopg2.pool import SimpleConnectionPool
 import os
+from dotenv import load_dotenv
+from .routes.auth import auth_bp
+from .routes.prescriptions import prescriptions_bp
+load_dotenv()
 
 def create_app():
     app = Flask(__name__)
+    app.config['TOKEN_KEY'] = os.getenv('TOKEN_KEY')
+    if not app.config['TOKEN_KEY']:
+        raise ValueError("No TOKEN_KEY set in environment")
     
     DATABASE_URL = os.getenv('DATABASE_URL')
     if not DATABASE_URL:
         raise ValueError("No DATABASE_URL set in environment")
     
-    # Create connection pool
     try:
         app.db_pool = SimpleConnectionPool(
             minconn=1,
@@ -21,8 +27,7 @@ def create_app():
         print(f"Error creating database pool: {e}")
         raise
     
-    # Register blueprints
-    from .routes.auth import auth_bp
     app.register_blueprint(auth_bp)
+    app.register_blueprint(prescriptions_bp)
     
     return app
