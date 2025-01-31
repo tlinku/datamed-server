@@ -1,16 +1,32 @@
 from flask import Flask
+from flask_socketio import SocketIO
 from psycopg2.pool import SimpleConnectionPool
-import os
 from dotenv import load_dotenv
+from logger import RequestLoggingMiddleware
+from utilities.mqtt_handler import MQTTHandler
+import os
+
 from .routes.auth import auth_bp
 from .routes.prescriptions_api import prescriptions_bp
 from .routes.special_searches import prescription_routes
 from .routes.doctors_api import doctors_bp
 from .routes.notes_api import notes_bp
+
 load_dotenv()
 
 def create_app():
     app = Flask(__name__)
+    
+    socketio = SocketIO(app, cors_allowed_origins="*")
+    mqtt_handler = MQTTHandler(socketio)
+    os.system("utilities/mqtt.sh start")
+    if mqtt_handler.connect():
+            print("MQTT broker connection established")
+    else:
+        print("MQTT broker connection failed")
+    
+    app.wsgi_app = RequestLoggingMiddleware(app.wsgi_app)
+    
     app.config['TOKEN_KEY'] = os.getenv('TOKEN_KEY')
     if not app.config['TOKEN_KEY']:
         raise ValueError("No TOKEN_KEY set in environment")
@@ -36,4 +52,19 @@ def create_app():
     app.register_blueprint(doctors_bp)
     app.register_blueprint(notes_bp)
     
-    return app
+    try:
+        mqtt_handler.connect()
+        app.mqtt_handler = mqtt_handler
+        print("MQTT connection established")
+    except Exception as e:
+        print(f"Error connecting to MQTT broker: {e}")
+    
+    @app.errorhandler(404)
+    def not_found_error(error):
+        return {'error': 'Not Found'}, 404
+
+    @app.errorhandler(500)
+    def internal_error(error):
+        return {'error': 'Internal Server Error'}, 500
+    
+    return app, socketio
