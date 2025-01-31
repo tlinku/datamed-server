@@ -14,41 +14,41 @@ def create_token(user_id: int):
 def token_required(f):
     @wraps(f)
     def decorator(*args, **kwargs):
-        print("=== Decorator called ===")  # Debug entry point
-        print("Headers:", request.headers)  # Show all headers
+        print("=== Decorator called ===")  
+        print("Headers:", request.headers) 
         
         token = None
         auth_header = request.headers.get('Authorization')
-        print(f"Auth header: {auth_header}")  # Show auth header
+        print(f"Auth header: {auth_header}") 
         
         if not auth_header:
             return jsonify({'error': 'Authorization header is missing'}), 401
             
         try:
             parts = auth_header.split()
-            print(f"Header parts: {parts}")  # Show split result
+            print(f"Header parts: {parts}")
             
             if len(parts) != 2 or parts[0].lower() != 'bearer':
                 return jsonify({'error': 'Invalid authorization header format'}), 401
                 
             token = parts[1]
-            print(f"Token to decode: {token}")  # Show token before decode
+            print(f"Token to decode: {token}")
             
-            data = jwt.decode(token, current_app.config['TOKEN_KEY'], algorithms=['HS256'])  # Note: TOKEN_KEY not SECRET_KEY
-            print(f"Decoded data: {data}")  # Show decoded data
+            data = jwt.decode(token, current_app.config['TOKEN_KEY'], algorithms=['HS256'])
+            print(f"Decoded data: {data}")
             
             current_user_id = data['user_id']
-            print(f"User ID: {current_user_id}")  # Show extracted user_id
+            print(f"User ID: {current_user_id}")
             
             return f(current_user_id, *args, **kwargs)
         except jwt.ExpiredSignatureError:
-            print("Token expired")  # Debug expired
+            print("Token expired")
             return jsonify({'error': 'Token has expired'}), 401
         except jwt.InvalidTokenError as e:
-            print(f"Invalid token: {str(e)}")  # Debug invalid
+            print(f"Invalid token: {str(e)}")
             return jsonify({'error': 'Invalid token'}), 401
         except Exception as e:
-            print(f"Other error: {str(e)}")  # Debug other errors
+            print(f"Other error: {str(e)}")
             return jsonify({'error': 'Token validation failed'}), 401
             
     return decorator

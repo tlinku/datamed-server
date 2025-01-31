@@ -65,13 +65,11 @@ def login():
         )
         user = cur.fetchone()
         
-        # Add debug print
         print("User found:", user)
         
         if not user or not check_password_hash(user[2], data['password']):
             return jsonify({'error': 'Invalid email or password'}), 401
             
-        # Check if TOKEN_KEY is configured
         if 'TOKEN_KEY' not in current_app.config:
             raise ValueError("TOKEN_KEY not configured")
  
@@ -84,7 +82,7 @@ def login():
         }), 200
             
     except Exception as e:
-        print("Error in login:", str(e))  # Debug print
+        print("Error in login:", str(e))
         return jsonify({'error': str(e)}), 500
     finally:
         if cur:

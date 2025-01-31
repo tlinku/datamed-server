@@ -7,7 +7,7 @@ from utilities.jwt_authentication import token_required
 
 prescriptions_bp = Blueprint('prescriptions', __name__)
 
-UPLOAD_FOLDER = 'uploads/prescriptions'
+UPLOAD_FOLDER = 'prescriptions'
 ALLOWED_EXTENSIONS = {'pdf'}
 
 def allowed_file(filename):
@@ -28,20 +28,29 @@ def add_prescription(current_user_id):
             return jsonify({'error': 'Invalid file'}), 400
             
         data = request.form
-        if not all(key in data for key in ['first_name', 'last_name', 'pesel', 'issue_date', 'expiry_date']):
-            return jsonify({'error': 'Missing required fields'}), 400
+        required_keys = ['first_name', 'last_name', 'pesel', 'issue_date', 'expiry_date']
+        missing_keys = [key for key in required_keys if key not in data]
+        if missing_keys:
+            return jsonify({'error': f'Missing required fields: {", ".join(missing_keys)}'}), 400
+
         timestamp = datetime.now().strftime('%Y%m%d_%H%M%S')
         filename = secure_filename(f"{current_user_id}_{timestamp}_{file.filename}")
         file_path = f"prescriptions/{current_user_id}/{filename}"
         
-        supabase: Client = current_app.supabase
-        result = supabase.storage.from_('prescriptions').upload(
+        supabase_url = os.getenv('SUPABASE_URL')
+        service_role_key = os.getenv('SUPABASE_SERVICE_ROLE_KEY')
+        storage_client = create_client(supabase_url, service_role_key)
+        
+        result = storage_client.storage.from_('prescriptions').upload(
             file_path,
             file.read(),
             file_options={"content-type": "application/pdf"}
         )
         
-        file_url = supabase.storage.from_('prescriptions').get_public_url(file_path)
+        file_url = storage_client.storage.from_('prescriptions').create_signed_url(
+            file_path,
+            60 * 60 * 24 * 7
+        )['signedURL']
         
         conn = current_app.db_pool.getconn()
         cur = conn.cursor()
