@@ -1,6 +1,7 @@
 from flask import Flask
 from flask_socketio import SocketIO
 from psycopg2.pool import SimpleConnectionPool
+from flask_cors import CORS 
 from dotenv import load_dotenv
 from logger import RequestLoggingMiddleware
 from utilities.mqtt_handler import MQTTHandler
@@ -16,7 +17,14 @@ load_dotenv()
 
 def create_app():
     app = Flask(__name__)
-    
+    CORS(app,
+     supports_credentials=True,
+     resources={r"/*": {
+       "origins": ["http://localhost:3000","http://0.0.0.0:5000" ],
+       "allow_headers": ["Content-Type", "Authorization"],
+       "methods": ["GET","POST","OPTIONS"],
+       "supports_credentials": True
+     }})
     socketio = SocketIO(app, cors_allowed_origins="*")
     mqtt_handler = MQTTHandler(socketio)
     os.system("utilities/mqtt.sh start")

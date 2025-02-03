@@ -47,7 +47,6 @@ def login():
     cur = None
     
     try:
-        # Add debug print
         print("Received login request:", data)
         
         if not data or not data.get('email') or not data.get('password'):
@@ -56,7 +55,6 @@ def login():
         conn = current_app.db_pool.getconn()
         cur = conn.cursor()
         
-        # Add debug print
         print("Connected to database")
         
         cur.execute(
