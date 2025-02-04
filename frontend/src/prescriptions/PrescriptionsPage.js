@@ -44,7 +44,7 @@ function PrescriptionsPage() {
     setLoading(true);
     try {
       const token = getToken();
-      const response = await fetch("http://localhost:5000/prescriptions", {
+      const response = await fetch("https://localhost:5000/prescriptions", {
         method: "GET",
         headers: {
           Authorization: `Bearer ${token}`,
@@ -85,7 +85,7 @@ function PrescriptionsPage() {
             formDataToSend.append(key, formData[key]);
           }
         });
-        response = await fetch("http://localhost:5000/prescriptions", {
+        response = await fetch("https://localhost:5000/prescriptions", {
           method: "POST",
           headers: {
             Authorization: `Bearer ${token}`,
@@ -95,7 +95,7 @@ function PrescriptionsPage() {
         });
       } else {
         const { pdf_file, ...dataWithoutFile } = formData;
-        response = await fetch("http://localhost:5000/prescriptions/no-pdf", {
+        response = await fetch("https://localhost:5000/prescriptions/no-pdf", {
           method: "POST",
           headers: {
             "Content-Type": "application/json",
@@ -131,7 +131,7 @@ function PrescriptionsPage() {
       if (!token) return setError("No token found");
 
       const response = await fetch(
-        `http://localhost:5000/prescriptions/${prescriptionId}`,
+        `https://localhost:5000/prescriptions/${prescriptionId}`,
         {
           method: "DELETE",
           headers: {
@@ -153,7 +153,7 @@ function PrescriptionsPage() {
     try {
       const token = getToken();
       const response = await fetch(
-        `http://localhost:5000/prescriptions/${searchByID}`,
+        `https://localhost:5000/prescriptions/${searchByID}`,
         {
           method: "GET",
           headers: {
@@ -180,7 +180,7 @@ function PrescriptionsPage() {
         end_date: searchPerson.end_date,
       });
       const response = await fetch(
-        `http://localhost:5000/prescriptions/search/person?${queryParams}`,
+        `https://localhost:5000/prescriptions/search/person?${queryParams}`,
         {
           method: "GET",
           headers: {
@@ -201,7 +201,7 @@ function PrescriptionsPage() {
     try {
       const token = getToken();
       const response = await fetch(
-        `http://localhost:5000/prescriptions/search/medication?medication=${searchMedication}`,
+        `https://localhost:5000/prescriptions/search/medication?medication=${searchMedication}`,
         {
           method: "GET",
           headers: {
@@ -222,7 +222,7 @@ function PrescriptionsPage() {
     try {
       const token = getToken();
       const response = await fetch(
-        "http://localhost:5000/prescriptions/person",
+        "https://localhost:5000/prescriptions/person",
         {
           method: "DELETE",
           headers: {
@@ -244,7 +244,7 @@ function PrescriptionsPage() {
     try {
       const token = getToken();
       const response = await fetch(
-        `http://localhost:5000/prescriptions/expired?before_date=${deleteExpiredDate}`,
+        `https://localhost:5000/prescriptions/expired?before_date=${deleteExpiredDate}`,
         {
           method: "DELETE",
           headers: {
@@ -264,7 +264,7 @@ function PrescriptionsPage() {
   const handleChangePassword = async () => {
     try {
       const token = getToken();
-      const response = await fetch("http://localhost:5000/auth/password", {
+      const response = await fetch("https://localhost:5000/auth/password", {
         method: "PUT",
         headers: {
           "Content-Type": "application/json",
@@ -285,7 +285,7 @@ function PrescriptionsPage() {
       return;
     try {
       const token = getToken();
-      const response = await fetch("http://localhost:5000/auth/account", {
+      const response = await fetch("https://localhost:5000/auth/account", {
         method: "DELETE",
         headers: {
           "Content-Type": "application/json",

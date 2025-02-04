@@ -6,6 +6,7 @@ import "./index.css";
 import App from "./App";
 import reportWebVitals from "./reportWebVitals";
 import Notes from "./notes/notes";
+import Profile from "./profile/profile";
 
 const root = ReactDOM.createRoot(document.getElementById("root"));
 root.render(
@@ -14,6 +15,7 @@ root.render(
       <Route path="/" element={<App />} />
       <Route path="/prescriptions" element={<PrescriptionsPage />} />
       <Route path="/notes" element={<Notes />} />
+      <Route path="/profile" element={<Profile />} />
     </Routes>
   </BrowserRouter>
 );

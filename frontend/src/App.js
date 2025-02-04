@@ -17,7 +17,7 @@ function App() {
     try {
       console.log("Attempting authentication...");
       const response = await fetch(
-        `http://localhost:5000/auth/${isLogin ? "login" : "register"}`,
+        `https://localhost:5000/auth/${isLogin ? "login" : "register"}`,
         {
           method: "POST",
           headers: {

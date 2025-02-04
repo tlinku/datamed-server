@@ -29,7 +29,7 @@ function Notes() {
         return;
       }
 
-      const response = await fetch("http://localhost:5000/notes", {
+      const response = await fetch("https://localhost:5000/notes", {
         headers: {
           Authorization: `Bearer ${token}`,
         },
@@ -62,8 +62,8 @@ function Notes() {
       if (!token) return;
 
       const url = selectedNote
-        ? `http://localhost:5000/notes/${selectedNote.id}`
-        : "http://localhost:5000/notes";
+        ? `https://localhost:5000/notes/${selectedNote.id}`
+        : "https://localhost:5000/notes";
 
       const response = await fetch(url, {
         method: selectedNote ? "PUT" : "POST",
@@ -92,7 +92,7 @@ function Notes() {
       const token = getToken();
       if (!token) return;
 
-      const response = await fetch(`http://localhost:5000/notes/${noteId}`, {
+      const response = await fetch(`https://localhost:5000/notes/${noteId}`, {
         method: "DELETE",
         headers: {
           Authorization: `Bearer ${token}`,
@@ -111,7 +111,7 @@ function Notes() {
       const token = getToken();
       if (!token) return;
 
-      const response = await fetch(`http://localhost:5000/notes/${note.id}`, {
+      const response = await fetch(`https://localhost:5000/notes/${note.id}`, {
         headers: {
           Authorization: `Bearer ${token}`,
         },

@@ -3,3 +3,6 @@ backend/utilities/__pycache__/__init__.cpython-310.pyc
 backend/app/routes/__pycache__/__init__.cpython-310.pyc
 backend/app/routes/__pycache__/auth.cpython-310.pyc
 backend/app/__pycache__/__init__.cpython-310.pyc
+.idea
+certyfikat.crt
+klucz_bez_hasla.key

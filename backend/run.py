@@ -11,4 +11,6 @@ if __name__ == '__main__':
         port=port,
         debug=os.getenv('FLASK_ENV') == 'development',
         use_reloader=True,
+        keyfile="./klucz_bez_hasla.key",
+        certfile="./certyfikat.crt"
     )
