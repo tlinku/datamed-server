@@ -18,13 +18,16 @@ load_dotenv()
 def create_app():
     app = Flask(__name__)
     CORS(app,
-     supports_credentials=True,
-     resources={r"/*": {
-       "origins": ["http://localhost:3000","http://0.0.0.0:5000" ],
-       "allow_headers": ["Content-Type", "Authorization"],
-       "methods": ["GET","POST","OPTIONS"],
-       "supports_credentials": True
-     }})
+         supports_credentials=True,
+         resources={r"/*": {
+             "origins": ["http://localhost:3000","http://0.0.0.0:5000"],
+             "allow_headers": ["Content-Type", "Authorization"],
+             "methods": ["GET", "POST", "PUT", "DELETE", "OPTIONS"],
+             "expose_headers": ["Content-Type", "Authorization"],
+             "supports_credentials": True,
+             "send_wildcard": False,
+             "intercept_exceptions": True
+         }})
     socketio = SocketIO(app, cors_allowed_origins="*")
     mqtt_handler = MQTTHandler(socketio)
     os.system("utilities/mqtt.sh start")

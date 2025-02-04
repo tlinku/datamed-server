@@ -127,3 +127,33 @@
   width: 100%;
   margin-top: 1rem;
 }
+.header-buttons {
+  display: flex;
+  gap: 0.5rem;
+}
+
+.nav-button {
+  background-color: #4a90e2;
+  color: white;
+  border: none;
+  padding: 8px 16px;
+  border-radius: 4px;
+  cursor: pointer;
+}
+
+.logout-button {
+  background-color: #dc3545;
+  color: white;
+  border: none;
+  padding: 8px 16px;
+  border-radius: 4px;
+  cursor: pointer;
+}
+
+.nav-button:hover {
+  background-color: #357abd;
+}
+
+.logout-button:hover {
+  background-color: #c82333;
+}

@@ -29,11 +29,11 @@ function App() {
       const data = await response.json();
       console.log(data);
 
-      if (response.ok) {
-        document.cookie = `${data.token}`;
+      if (response.ok && isLogin) {
+        document.cookie = `auth_token=${data.token}; path=/; max-age=86400`;
         setTimeout(() => {
           window.location.href = "/prescriptions";
-        }, 2000);
+        }, 200);
       }
     } catch (err) {
       console.error("Authentication error:", err);

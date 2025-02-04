@@ -317,7 +317,22 @@ function PrescriptionsPage() {
     <div className="prescriptions-page">
       <div className="header">
         <h1>Prescriptions</h1>
-        <div>
+        <div className="header-buttons">
+          <button onClick={() => navigate("/notes")} className="nav-button">
+            Notes
+          </button>
+          <button onClick={() => navigate("/profile")} className="nav-button">
+            Profile
+          </button>
+          <button
+            onClick={() => {
+              document.cookie = "auth_token=; path=/; max-age=0";
+              navigate("/");
+            }}
+            className="logout-button"
+          >
+            Logout
+          </button>
           <button onClick={() => setShowAddForm(!showAddForm)}>
             {showAddForm ? "Cancel New" : "Add Prescription"}
           </button>
