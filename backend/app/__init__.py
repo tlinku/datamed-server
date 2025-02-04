@@ -29,7 +29,7 @@ def create_app():
              "intercept_exceptions": True
          }})
     socketio = SocketIO(app, cors_allowed_origins="*")
-    mqtt_handler = MQTTHandler(socketio)
+    mqtt_handler = MQTTHandler(socketio, app=app)
     os.system("utilities/mqtt.sh start")
     if mqtt_handler.connect():
             print("MQTT broker connection established")
