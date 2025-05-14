@@ -4,7 +4,6 @@ import PrescriptionsPage from "./prescriptions/PrescriptionsPage";
 import ReactDOM from "react-dom/client";
 import "./index.css";
 import App from "./App";
-import reportWebVitals from "./reportWebVitals";
 import Notes from "./notes/notes";
 import Profile from "./profile/profile";
 
@@ -19,4 +18,3 @@ root.render(
     </Routes>
   </BrowserRouter>
 );
-reportWebVitals();

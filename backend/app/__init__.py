@@ -28,24 +28,20 @@ def create_app():
              "send_wildcard": False,
              "intercept_exceptions": True
          }})
-    socketio = SocketIO(app, cors_allowed_origins="*")
+    socketio = SocketIO(app, cors_allowed_origins=["http://localhost:3000", "http://0.0.0.0:5000"])
     mqtt_handler = MQTTHandler(socketio, app=app)
     os.system("utilities/mqtt.sh start")
-    if mqtt_handler.connect():
-            print("MQTT broker connection established")
-    else:
-        print("MQTT broker connection failed")
-    
+
     app.wsgi_app = RequestLoggingMiddleware(app.wsgi_app)
-    
+
     app.config['TOKEN_KEY'] = os.getenv('TOKEN_KEY')
     if not app.config['TOKEN_KEY']:
         raise ValueError("No TOKEN_KEY set in environment")
-    
+
     DATABASE_URL = os.getenv('DATABASE_URL')
     if not DATABASE_URL:
         raise ValueError("No DATABASE_URL set in environment")
-    
+
     try:
         app.db_pool = SimpleConnectionPool(
             minconn=1,
@@ -56,20 +52,27 @@ def create_app():
     except Exception as e:
         print(f"Error creating database pool: {e}")
         raise
-    
+
     app.register_blueprint(auth_bp)
     app.register_blueprint(prescriptions_bp)
     app.register_blueprint(prescription_routes)
     app.register_blueprint(doctors_bp)
     app.register_blueprint(notes_bp)
-    
+
     try:
         mqtt_handler.connect()
         app.mqtt_handler = mqtt_handler
+
+        # Schedule periodic check for expired prescriptions
+        @socketio.on('connect')
+        def handle_connect():
+            print("Client connected, checking for expired prescriptions")
+            mqtt_handler.check_expired_prescriptions()
+
         print("MQTT connection established")
     except Exception as e:
         print(f"Error connecting to MQTT broker: {e}")
-    
+
     @app.errorhandler(404)
     def not_found_error(error):
         return {'error': 'Not Found'}, 404
@@ -77,5 +80,5 @@ def create_app():
     @app.errorhandler(500)
     def internal_error(error):
         return {'error': 'Internal Server Error'}, 500
-    
+
     return app, socketio

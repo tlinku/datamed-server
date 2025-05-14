@@ -30,7 +30,7 @@ function App() {
       console.log(data);
 
       if (response.ok && isLogin) {
-        document.cookie = `auth_token=${data.token}; path=/; max-age=86400`;
+        document.cookie = `auth_token=${data.token}; path=/; max-age=86400; HttpOnly; Secure; SameSite=Strict`;
         setTimeout(() => {
           window.location.href = "/prescriptions";
         }, 200);
