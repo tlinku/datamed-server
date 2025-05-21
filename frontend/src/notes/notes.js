@@ -1,8 +1,10 @@
 import { useState, useEffect } from "react";
 import { useNavigate } from "react-router-dom";
 import "./notes.css";
+import { getToken } from "../keycloak";
 
 function Notes() {
+  const apiUrl = process.env.REACT_APP_API_URL || 'http://localhost:5000';
   const navigate = useNavigate();
   const [notes, setNotes] = useState([]);
   const [loading, setLoading] = useState(true);
@@ -14,12 +16,6 @@ function Notes() {
     content: "",
   });
 
-  const getToken = () => {
-    return document.cookie
-      .split("; ")
-      .find((row) => row.startsWith("auth_token="))
-      ?.split("=")[1];
-  };
 
   const fetchNotes = async () => {
     try {
@@ -29,7 +25,7 @@ function Notes() {
         return;
       }
 
-      const response = await fetch("https://localhost:5000/notes", {
+      const response = await fetch(`${apiUrl}/notes`, {
         headers: {
           Authorization: `Bearer ${token}`,
         },
@@ -62,8 +58,8 @@ function Notes() {
       if (!token) return;
 
       const url = selectedNote
-        ? `https://localhost:5000/notes/${selectedNote.id}`
-        : "https://localhost:5000/notes";
+        ? `${apiUrl}/notes/${selectedNote.id}`
+        : `${apiUrl}/notes`;
 
       const response = await fetch(url, {
         method: selectedNote ? "PUT" : "POST",
@@ -92,7 +88,7 @@ function Notes() {
       const token = getToken();
       if (!token) return;
 
-      const response = await fetch(`https://localhost:5000/notes/${noteId}`, {
+      const response = await fetch(`${apiUrl}/notes/${noteId}`, {
         method: "DELETE",
         headers: {
           Authorization: `Bearer ${token}`,
@@ -111,7 +107,7 @@ function Notes() {
       const token = getToken();
       if (!token) return;
 
-      const response = await fetch(`https://localhost:5000/notes/${note.id}`, {
+      const response = await fetch(`${apiUrl}/notes/${note.id}`, {
         headers: {
           Authorization: `Bearer ${token}`,
         },

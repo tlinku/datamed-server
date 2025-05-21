@@ -4,7 +4,7 @@ from psycopg2.pool import SimpleConnectionPool
 from flask_cors import CORS 
 from dotenv import load_dotenv
 from logger import RequestLoggingMiddleware
-from utilities.mqtt_handler import MQTTHandler
+from utilities.minio_handler import MinioHandler
 import os
 
 from .routes.auth import auth_bp
@@ -29,14 +29,18 @@ def create_app():
              "intercept_exceptions": True
          }})
     socketio = SocketIO(app, cors_allowed_origins=["http://localhost:3000", "http://0.0.0.0:5000"])
-    mqtt_handler = MQTTHandler(socketio, app=app)
-    os.system("utilities/mqtt.sh start")
 
     app.wsgi_app = RequestLoggingMiddleware(app.wsgi_app)
 
     app.config['TOKEN_KEY'] = os.getenv('TOKEN_KEY')
     if not app.config['TOKEN_KEY']:
         raise ValueError("No TOKEN_KEY set in environment")
+
+    # Keycloak configuration
+    app.config['KEYCLOAK_URL'] = os.getenv('KEYCLOAK_URL', 'http://keycloak:8080')
+    app.config['KEYCLOAK_REALM'] = os.getenv('KEYCLOAK_REALM', 'datamed')
+    app.config['KEYCLOAK_CLIENT_ID'] = os.getenv('KEYCLOAK_CLIENT_ID', 'datamed-client')
+    app.config['KEYCLOAK_CLIENT_SECRET'] = os.getenv('KEYCLOAK_CLIENT_SECRET')
 
     DATABASE_URL = os.getenv('DATABASE_URL')
     if not DATABASE_URL:
@@ -59,19 +63,14 @@ def create_app():
     app.register_blueprint(doctors_bp)
     app.register_blueprint(notes_bp)
 
+
     try:
-        mqtt_handler.connect()
-        app.mqtt_handler = mqtt_handler
-
-        # Schedule periodic check for expired prescriptions
-        @socketio.on('connect')
-        def handle_connect():
-            print("Client connected, checking for expired prescriptions")
-            mqtt_handler.check_expired_prescriptions()
-
-        print("MQTT connection established")
+        minio_handler = MinioHandler()
+        minio_handler.init_app(app)
+        app.minio_handler = minio_handler
+        print("MinIO connection established")
     except Exception as e:
-        print(f"Error connecting to MQTT broker: {e}")
+        print(f"Error connecting to MinIO: {e}")
 
     @app.errorhandler(404)
     def not_found_error(error):
@@ -80,5 +79,9 @@ def create_app():
     @app.errorhandler(500)
     def internal_error(error):
         return {'error': 'Internal Server Error'}, 500
+
+    @app.route('/health', methods=['GET'])
+    def health_check():
+        return {'status': 'healthy'}, 200
 
     return app, socketio

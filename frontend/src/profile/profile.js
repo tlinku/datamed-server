@@ -1,8 +1,10 @@
 import { useState, useEffect } from "react";
 import { useNavigate } from "react-router-dom";
 import "./profile.css";
+import { getToken } from "../keycloak";
 
 function Profile() {
+  const apiUrl = process.env.REACT_APP_API_URL || 'http://localhost:5000';
   const navigate = useNavigate();
   const [loading, setLoading] = useState(true);
   const [error, setError] = useState("");
@@ -13,12 +15,6 @@ function Profile() {
   });
   const [isEditing, setIsEditing] = useState(false);
 
-  const getToken = () => {
-    return document.cookie
-      .split("; ")
-      .find((row) => row.startsWith("auth_token="))
-      ?.split("=")[1];
-  };
 
   const fetchDoctorInfo = async () => {
     try {
@@ -28,7 +24,7 @@ function Profile() {
         return;
       }
 
-      const response = await fetch("https://localhost:5000/doctors", {
+      const response = await fetch(`${apiUrl}/doctors`, {
         headers: {
           Authorization: `Bearer ${token}`,
         },
@@ -68,7 +64,7 @@ function Profile() {
 
       const method = doctorInfo ? "PUT" : "POST";
 
-      const response = await fetch("https://localhost:5000/doctors", {
+      const response = await fetch(`${apiUrl}/doctors`, {
         method,
         headers: {
           "Content-Type": "application/json",
@@ -98,7 +94,7 @@ function Profile() {
       const token = getToken();
       if (!token) return;
 
-      const response = await fetch("https://localhost:5000/doctors", {
+      const response = await fetch(`${apiUrl}/doctors`, {
         method: "DELETE",
         headers: {
           Authorization: `Bearer ${token}`,

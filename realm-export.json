@@ -1,0 +1,21 @@
+{
+  "id": "datamed",
+  "realm": "datamed",
+  "enabled": true,
+  "displayName": "Datamed",
+  "displayNameHtml": "<div class=\"kc-logo-text\"><span>Datamed</span></div>",
+  "clients": [
+    {
+      "clientId": "datamed-client",
+      "enabled": true,
+      "publicClient": true,
+      "redirectUris": ["http://localhost:3000/*"],
+      "webOrigins": ["http://localhost:3000"],
+      "directAccessGrantsEnabled": true,
+      "standardFlowEnabled": true,
+      "implicitFlowEnabled": false,
+      "serviceAccountsEnabled": false,
+      "fullScopeAllowed": true
+    }
+  ]
+}

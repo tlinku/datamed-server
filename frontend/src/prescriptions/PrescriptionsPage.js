@@ -1,8 +1,10 @@
 import { useState, useEffect } from "react";
 import { useNavigate } from "react-router-dom";
 import "./PrescriptionsPage.css";
+import { getToken } from "../keycloak";
 
 function PrescriptionsPage() {
+  const apiUrl = process.env.REACT_APP_API_URL || 'http://localhost:5000';
   const navigate = useNavigate();
   const [prescriptions, setPrescriptions] = useState([]);
   const [loading, setLoading] = useState(true);
@@ -44,7 +46,7 @@ function PrescriptionsPage() {
     setLoading(true);
     try {
       const token = getToken();
-      const response = await fetch("https://localhost:5000/prescriptions", {
+      const response = await fetch(`${apiUrl}/prescriptions`, {
         method: "GET",
         headers: {
           Authorization: `Bearer ${token}`,
@@ -85,7 +87,7 @@ function PrescriptionsPage() {
             formDataToSend.append(key, formData[key]);
           }
         });
-        response = await fetch("https://localhost:5000/prescriptions", {
+        response = await fetch(`${apiUrl}/prescriptions`, {
           method: "POST",
           headers: {
             Authorization: `Bearer ${token}`,
@@ -95,7 +97,7 @@ function PrescriptionsPage() {
         });
       } else {
         const { pdf_file, ...dataWithoutFile } = formData;
-        response = await fetch("https://localhost:5000/prescriptions/no-pdf", {
+        response = await fetch(`${apiUrl}/prescriptions/no-pdf`, {
           method: "POST",
           headers: {
             "Content-Type": "application/json",
@@ -131,7 +133,7 @@ function PrescriptionsPage() {
       if (!token) return setError("No token found");
 
       const response = await fetch(
-        `https://localhost:5000/prescriptions/${prescriptionId}`,
+        `${apiUrl}/prescriptions/${prescriptionId}`,
         {
           method: "DELETE",
           headers: {
@@ -153,7 +155,7 @@ function PrescriptionsPage() {
     try {
       const token = getToken();
       const response = await fetch(
-        `https://localhost:5000/prescriptions/${searchByID}`,
+        `${apiUrl}/prescriptions/${searchByID}`,
         {
           method: "GET",
           headers: {
@@ -180,7 +182,7 @@ function PrescriptionsPage() {
         end_date: searchPerson.end_date,
       });
       const response = await fetch(
-        `https://localhost:5000/prescriptions/search/person?${queryParams}`,
+        `${apiUrl}/prescriptions/search/person?${queryParams}`,
         {
           method: "GET",
           headers: {
@@ -201,7 +203,7 @@ function PrescriptionsPage() {
     try {
       const token = getToken();
       const response = await fetch(
-        `https://localhost:5000/prescriptions/search/medication?medication=${searchMedication}`,
+        `${apiUrl}/prescriptions/search/medication?medication=${searchMedication}`,
         {
           method: "GET",
           headers: {
@@ -222,7 +224,7 @@ function PrescriptionsPage() {
     try {
       const token = getToken();
       const response = await fetch(
-        "https://localhost:5000/prescriptions/person",
+        `${apiUrl}/prescriptions/person`,
         {
           method: "DELETE",
           headers: {
@@ -244,7 +246,7 @@ function PrescriptionsPage() {
     try {
       const token = getToken();
       const response = await fetch(
-        `https://localhost:5000/prescriptions/expired?before_date=${deleteExpiredDate}`,
+        `${apiUrl}/prescriptions/expired?before_date=${deleteExpiredDate}`,
         {
           method: "DELETE",
           headers: {
@@ -264,7 +266,7 @@ function PrescriptionsPage() {
   const handleChangePassword = async () => {
     try {
       const token = getToken();
-      const response = await fetch("https://localhost:5000/auth/password", {
+      const response = await fetch(`${apiUrl}/auth/password`, {
         method: "PUT",
         headers: {
           "Content-Type": "application/json",
@@ -285,7 +287,7 @@ function PrescriptionsPage() {
       return;
     try {
       const token = getToken();
-      const response = await fetch("https://localhost:5000/auth/account", {
+      const response = await fetch(`${apiUrl}/auth/account`, {
         method: "DELETE",
         headers: {
           "Content-Type": "application/json",
@@ -303,13 +305,6 @@ function PrescriptionsPage() {
     }
   };
 
-  const getToken = () => {
-    console.log(document.cookie);
-    return document.cookie
-      .split("; ")
-      .find((row) => row.startsWith("auth_token="))
-      ?.split("=")[1];
-  };
 
   if (loading) return <div className="loading">Loading prescriptions...</div>;
 

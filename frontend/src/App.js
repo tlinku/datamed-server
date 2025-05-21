@@ -1,83 +1,63 @@
 import { useState, useEffect } from "react";
 import { useNavigate } from "react-router-dom";
 import "./App.css";
+import { initKeycloak, isAuthenticated, doLogin, doLogout, getToken } from "./keycloak";
 
 function App() {
   const navigate = useNavigate();
-  const [isLogin, setIsLogin] = useState(true);
-  const [formData, setFormData] = useState({ email: "", password: "" });
+  const [initialized, setInitialized] = useState(false);
+  const [authenticated, setAuthenticated] = useState(false);
   const [error, setError] = useState("");
-  const [loading, setLoading] = useState(false);
+  const [loading, setLoading] = useState(true);
 
-  const handleSubmit = async (e) => {
-    e.preventDefault();
-    setError("");
-    setLoading(true);
-
-    try {
-      console.log("Attempting authentication...");
-      const response = await fetch(
-        `https://localhost:5000/auth/${isLogin ? "login" : "register"}`,
-        {
-          method: "POST",
-          headers: {
-            "Content-Type": "application/json",
-          },
-          body: JSON.stringify(formData),
-        }
-      );
-      const data = await response.json();
-      console.log(data);
-
-      if (response.ok && isLogin) {
-        document.cookie = `auth_token=${data.token}; path=/; max-age=86400; HttpOnly; Secure; SameSite=Strict`;
-        setTimeout(() => {
-          window.location.href = "/prescriptions";
-        }, 200);
-      }
-    } catch (err) {
-      console.error("Authentication error:", err);
-      setError(err.message || "Network error occurred");
-    } finally {
+  useEffect(() => {
+    initKeycloak(() => {
+      setInitialized(true);
+      setAuthenticated(isAuthenticated());
       setLoading(false);
+    });
+  }, []);
+
+  useEffect(() => {
+    if (initialized && authenticated) {
+      navigate("/prescriptions");
     }
+  }, [initialized, authenticated, navigate]);
+
+  const handleLogin = () => {
+    setLoading(true);
+    doLogin();
+  };
+
+  const handleRegister = () => {
+    window.location.href = `${process.env.REACT_APP_KEYCLOAK_URL || 'http://localhost:8080'}/auth/realms/${process.env.REACT_APP_KEYCLOAK_REALM || 'datamed'}/protocol/openid-connect/registrations?client_id=${process.env.REACT_APP_KEYCLOAK_CLIENT_ID || 'datamed-client'}&response_type=code&redirect_uri=${window.location.origin}`;
   };
 
   return (
     <div className="container">
       <div className="auth-box">
-        <h1>{isLogin ? "Login" : "Register"}</h1>
+        <h1>Welcome to Datamed</h1>
         {error && <div className="error">{error}</div>}
-        <form onSubmit={handleSubmit}>
-          <div className="form-group">
-            <label>Email:</label>
-            <input
-              type="email"
-              value={formData.email}
-              onChange={(e) =>
-                setFormData({ ...formData, email: e.target.value })
-              }
-              required
-            />
+        {loading ? (
+          <div>
+            <div className="loading">Loading...</div>
+            <div className="troubleshoot-link">
+              <a href="/keycloak-test">Troubleshoot Keycloak Connection</a>
+            </div>
           </div>
-          <div className="form-group">
-            <label>Password:</label>
-            <input
-              type="password"
-              value={formData.password}
-              onChange={(e) =>
-                setFormData({ ...formData, password: e.target.value })
-              }
-              required
-            />
+        ) : initialized && !authenticated ? (
+          <div className="auth-buttons">
+            <button onClick={handleLogin} className="login-btn">
+              Login with Keycloak
+            </button>
+            <button onClick={handleRegister} className="register-btn">
+              Register a New Account
+            </button>
+            <div className="troubleshoot-link">
+              <a href="/keycloak-test">Troubleshoot Keycloak Connection</a>
+            </div>
           </div>
-          <button type="submit" disabled={loading}>
-            {loading ? "Processing..." : isLogin ? "Login" : "Register"}
-          </button>
-        </form>
-        <button className="toggle-btn" onClick={() => setIsLogin(!isLogin)}>
-          {isLogin ? "Need an account? Register" : "Have an account? Login"}
-        </button>
+        ) : null}
       </div>
     </div>
   );

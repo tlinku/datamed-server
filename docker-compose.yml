@@ -1,0 +1,148 @@
+version: '3.8'
+services:
+  backend:
+    build:
+      context: ./backend
+      platforms:
+        - linux/amd64
+        - linux/arm64
+    ports:
+      - "5000:5000"
+    environment:
+      - FLASK_ENV=development
+      - DATABASE_URL=postgresql://postgres:postgres@postgres:5432/datamed
+      - TOKEN_KEY=your_secret_token_key
+      - MINIO_URL=http://minio:9000
+      - MINIO_ACCESS_KEY=minioadmin
+      - MINIO_SECRET_KEY=minioadmin
+      - MINIO_BUCKET=prescriptions
+      - KEYCLOAK_URL=http://keycloak:8080
+      - KEYCLOAK_REALM=datamed
+      - KEYCLOAK_CLIENT_ID=datamed-client
+      - KEYCLOAK_CLIENT_SECRET=
+    volumes:
+      - ./backend:/app
+      - backend_logs:/app/logs
+    depends_on:
+      postgres:
+        condition: service_healthy
+      minio:
+        condition: service_healthy
+      keycloak:
+        condition: service_started
+    networks:
+      - datamed-network
+    healthcheck:
+      test: ["CMD-SHELL", "exit 0"]
+      interval: 10s
+      timeout: 5s
+      retries: 3
+      start_period: 10s
+  frontend:
+    build:
+      context: ./frontend
+      platforms:
+        - linux/amd64
+        - linux/arm64
+    ports:
+      - "3000:3000"
+    environment:
+      - REACT_APP_API_URL=http://localhost:5000
+      - REACT_APP_KEYCLOAK_URL=http://localhost:8080
+      - REACT_APP_KEYCLOAK_REALM=datamed
+      - REACT_APP_KEYCLOAK_CLIENT_ID=datamed-client
+    depends_on:
+      backend:
+        condition: service_healthy
+      keycloak:
+        condition: service_healthy
+    networks:
+      - datamed-network
+    healthcheck:
+      test: ["CMD-SHELL", "curl -I http://localhost:3000 | grep -E 'HTTP/1.1 (200|404)' || exit 1"]
+      interval: 10s
+      timeout: 5s
+      retries: 3
+      start_period: 10s
+  postgres:
+    image: postgres:15
+    ports:
+      - "5432:5432"
+    environment:
+      - POSTGRES_USER=postgres
+      - POSTGRES_PASSWORD=postgres
+      - POSTGRES_DB=datamed
+      - POSTGRES_MULTIPLE_DATABASES=keycloak
+    volumes:
+      - postgres_data:/var/lib/postgresql/data
+      - ./backend/db/init.sql:/docker-entrypoint-initdb.d/init.sql
+      - ./backend/db/create-multiple-postgresql-databases.sh:/docker-entrypoint-initdb.d/create-multiple-postgresql-databases.sh
+    networks:
+      - datamed-network
+    healthcheck:
+      test: ["CMD-SHELL", "pg_isready -U postgres"]
+      interval: 5s
+      timeout: 5s
+      retries: 5
+  minio:
+    image: minio/minio
+    ports:
+      - "9000:9000"
+      - "9001:9001"
+    environment:
+      - MINIO_ROOT_USER=minioadmin
+      - MINIO_ROOT_PASSWORD=minioadmin
+    volumes:
+      - minio_data:/data
+    command: server /data --console-address ":9001"
+    networks:
+      - datamed-network
+    healthcheck:
+      test: ["CMD", "curl", "-f", "http://localhost:9000/minio/health/live"]
+      interval: 10s
+      timeout: 5s
+      retries: 3
+      start_period: 10s
+  keycloak:
+    image: quay.io/keycloak/keycloak:22.0.1
+    ports:
+      - "8080:8080"
+    environment:
+      - KEYCLOAK_ADMIN=admin
+      - KEYCLOAK_ADMIN_PASSWORD=admin
+      - KC_DB=postgres
+      - KC_DB_URL=jdbc:postgresql://postgres:5432/keycloak
+      - KC_DB_USERNAME=postgres
+      - KC_DB_PASSWORD=postgres
+      - KC_HEALTH_ENABLED=true
+      - KC_METRICS_ENABLED=true
+      - KC_SPI_CORS_DEFAULT_ALLOWED_ORIGINS=http://localhost:3000
+      - KC_SPI_CORS_DEFAULT_ALLOWED_METHODS=GET,POST,PUT,DELETE,OPTIONS
+      - KC_SPI_CORS_DEFAULT_ALLOWED_HEADERS=Authorization,Content-Type,Accept
+      - KC_FEATURES=preview
+      - KC_HTTP_RELATIVE_PATH=/auth
+      - KC_HOSTNAME_STRICT=false
+      - KC_HTTP_ENABLED=true
+    command: start-dev --import-realm
+    volumes:
+      - ./realm-export.json:/opt/keycloak/data/import/realm-export.json
+    depends_on:
+      postgres:
+        condition: service_healthy
+    networks:
+      - datamed-network
+    healthcheck:
+      test: ["CMD", "echo", "Keycloak is healthy"]
+      interval: 10s
+      timeout: 5s
+      retries: 3
+      start_period: 30s
+
+volumes:
+  postgres_data:
+  minio_data:
+  backend_logs:
+
+networks:
+  datamed-network:
+    driver: bridge

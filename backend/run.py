@@ -26,4 +26,4 @@ if __name__ == '__main__':
     else:
         print("SSL certificate files not found, running without SSL")
 
-    socketio.run(app, **kwargs)
+    socketio.run(app, allow_unsafe_werkzeug=True, **kwargs)

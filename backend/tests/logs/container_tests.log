@@ -1,0 +1,129 @@
+2025-05-16 09:31:16,977 - __main__ - INFO - Setting up test environment
+2025-05-16 09:31:17,283 - __main__ - ERROR - Failed to start containers: Command '['docker-compose', 'up', '-d']' returned non-zero exit status 1.
+2025-05-16 09:32:25,410 - __main__ - INFO - Setting up test environment
+2025-05-16 09:32:35,924 - __main__ - INFO - Testing backend API
+2025-05-16 09:32:35,949 - __main__ - INFO - Testing if all containers are running
+2025-05-16 09:32:36,147 - __main__ - INFO - Testing frontend service
+2025-05-16 09:32:36,152 - __main__ - INFO - Testing Keycloak service
+2025-05-16 09:32:36,154 - __main__ - INFO - Testing MinIO connection
+2025-05-16 09:32:36,159 - __main__ - INFO - Bucket 'prescriptions' created
+2025-05-16 09:32:36,160 - __main__ - INFO - MinIO connection successful
+2025-05-16 09:32:36,160 - __main__ - INFO - Testing PostgreSQL connection
+2025-05-16 09:32:36,187 - __main__ - INFO - PostgreSQL connection successful
+2025-05-16 09:32:36,187 - __main__ - INFO - Cleaning up test environment
+2025-05-16 09:39:42,141 - __main__ - INFO - Setting up test environment
+2025-05-16 09:39:52,327 - __main__ - INFO - Testing backend API
+2025-05-16 09:39:52,349 - __main__ - INFO - Testing if all containers are running
+2025-05-16 09:39:52,424 - __main__ - INFO - Testing frontend service
+2025-05-16 09:39:52,430 - __main__ - INFO - Testing Keycloak service
+2025-05-16 09:39:52,433 - __main__ - INFO - Testing MinIO connection
+2025-05-16 09:39:52,437 - __main__ - INFO - MinIO connection successful
+2025-05-16 09:39:52,437 - __main__ - INFO - Testing PostgreSQL connection
+2025-05-16 09:39:52,459 - __main__ - INFO - PostgreSQL connection successful
+2025-05-16 09:39:52,459 - __main__ - INFO - Cleaning up test environment
+2025-05-16 12:05:52,550 - __main__ - INFO - Setting up test environment
+2025-05-16 12:06:04,203 - __main__ - INFO - Testing backend API
+2025-05-16 12:06:04,225 - __main__ - INFO - Backend API is accessible and healthy
+2025-05-16 12:06:04,225 - __main__ - INFO - Testing if all containers are running
+2025-05-16 12:06:04,357 - __main__ - INFO - Container backend is running
+2025-05-16 12:06:04,397 - __main__ - INFO - Container frontend is running
+2025-05-16 12:06:04,434 - __main__ - INFO - Container postgres is running
+2025-05-16 12:06:04,467 - __main__ - INFO - Container minio is running
+2025-05-16 12:06:04,500 - __main__ - INFO - Container keycloak is running
+2025-05-16 12:06:04,500 - __main__ - INFO - Testing frontend service
+2025-05-16 12:06:04,518 - __main__ - INFO - Testing Keycloak service
+2025-05-16 12:06:04,609 - __main__ - INFO - Testing MinIO connection
+2025-05-16 12:06:04,615 - __main__ - INFO - MinIO connection successful
+2025-05-16 12:06:04,615 - __main__ - INFO - Testing PostgreSQL connection
+2025-05-16 12:06:04,643 - __main__ - INFO - PostgreSQL connection successful
+2025-05-16 12:06:04,643 - __main__ - INFO - Cleaning up test environment
+2025-05-16 12:09:11,745 - __main__ - INFO - Setting up test environment
+2025-05-16 12:09:23,394 - __main__ - INFO - Testing backend API
+2025-05-16 12:09:23,413 - __main__ - INFO - Backend API is accessible and healthy
+2025-05-16 12:09:23,413 - __main__ - INFO - Testing if all containers are running
+2025-05-16 12:09:23,546 - __main__ - INFO - Container backend is running
+2025-05-16 12:09:23,584 - __main__ - INFO - Container frontend is running
+2025-05-16 12:09:23,619 - __main__ - INFO - Container postgres is running
+2025-05-16 12:09:23,653 - __main__ - INFO - Container minio is running
+2025-05-16 12:09:23,684 - __main__ - INFO - Container keycloak is running
+2025-05-16 12:09:23,684 - __main__ - INFO - Testing frontend service
+2025-05-16 12:09:23,689 - __main__ - INFO - Frontend service is accessible (status code: 404)
+2025-05-16 12:09:23,689 - __main__ - INFO - Testing Keycloak service
+2025-05-16 12:09:23,694 - __main__ - INFO - Keycloak service is accessible (status code: 404)
+2025-05-16 12:09:23,694 - __main__ - INFO - Testing MinIO connection
+2025-05-16 12:09:23,697 - __main__ - INFO - MinIO connection successful
+2025-05-16 12:09:23,697 - __main__ - INFO - Testing PostgreSQL connection
+2025-05-16 12:09:23,708 - __main__ - INFO - PostgreSQL connection successful
+2025-05-16 12:09:23,708 - __main__ - INFO - Cleaning up test environment
+2025-05-18 19:27:29,574 - __main__ - INFO - Setting up test environment
+2025-05-18 19:27:41,222 - __main__ - INFO - Testing backend API
+2025-05-18 19:27:41,237 - __main__ - INFO - Backend API is accessible and healthy
+2025-05-18 19:27:41,237 - __main__ - INFO - Testing if all containers are running
+2025-05-18 19:27:41,331 - __main__ - INFO - Container backend is running
+2025-05-18 19:27:41,365 - __main__ - INFO - Container frontend is running
+2025-05-18 19:27:41,396 - __main__ - INFO - Container postgres is running
+2025-05-18 19:27:41,427 - __main__ - INFO - Container minio is running
+2025-05-18 19:27:41,455 - __main__ - INFO - Container keycloak is running
+2025-05-18 19:27:41,455 - __main__ - INFO - Testing frontend service
+2025-05-18 19:27:41,458 - __main__ - INFO - Frontend service is accessible (status code: 404)
+2025-05-18 19:27:41,459 - __main__ - INFO - Testing Keycloak service
+2025-05-18 19:27:41,539 - __main__ - INFO - Keycloak service is accessible (status code: 404)
+2025-05-18 19:27:41,539 - __main__ - INFO - Testing MinIO connection
+2025-05-18 19:27:41,543 - __main__ - INFO - MinIO connection successful
+2025-05-18 19:27:41,544 - __main__ - INFO - Testing PostgreSQL connection
+2025-05-18 19:27:41,563 - __main__ - INFO - PostgreSQL connection successful
+2025-05-18 19:27:41,563 - __main__ - INFO - Cleaning up test environment
+2025-05-18 19:37:35,348 - __main__ - INFO - Setting up test environment
+2025-05-18 19:37:46,986 - __main__ - INFO - Testing backend API
+2025-05-18 19:37:47,007 - __main__ - INFO - Backend API is accessible and healthy
+2025-05-18 19:37:47,007 - __main__ - INFO - Testing if all containers are running
+2025-05-18 19:37:47,117 - __main__ - INFO - Container backend is running
+2025-05-18 19:37:47,153 - __main__ - INFO - Container frontend is running
+2025-05-18 19:37:47,188 - __main__ - INFO - Container postgres is running
+2025-05-18 19:37:47,219 - __main__ - INFO - Container minio is running
+2025-05-18 19:37:47,250 - __main__ - INFO - Container keycloak is running
+2025-05-18 19:37:47,250 - __main__ - INFO - Testing frontend service
+2025-05-18 19:37:47,260 - __main__ - INFO - Frontend service is accessible (status code: 200)
+2025-05-18 19:37:47,260 - __main__ - INFO - Testing Keycloak service
+2025-05-18 19:37:47,267 - __main__ - INFO - Keycloak service is accessible (status code: 404)
+2025-05-18 19:37:47,267 - __main__ - INFO - Testing MinIO connection
+2025-05-18 19:37:47,271 - __main__ - INFO - MinIO connection successful
+2025-05-18 19:37:47,271 - __main__ - INFO - Testing PostgreSQL connection
+2025-05-18 19:37:47,289 - __main__ - INFO - PostgreSQL connection successful
+2025-05-18 19:37:47,289 - __main__ - INFO - Cleaning up test environment
+2025-05-18 19:49:40,763 - __main__ - INFO - Setting up test environment
+2025-05-18 19:49:52,398 - __main__ - INFO - Testing backend API
+2025-05-18 19:49:52,418 - __main__ - INFO - Backend API is accessible and healthy
+2025-05-18 19:49:52,418 - __main__ - INFO - Testing if all containers are running
+2025-05-18 19:49:52,542 - __main__ - INFO - Container backend is running
+2025-05-18 19:49:52,577 - __main__ - INFO - Container frontend is running
+2025-05-18 19:49:52,611 - __main__ - INFO - Container postgres is running
+2025-05-18 19:49:52,643 - __main__ - INFO - Container minio is running
+2025-05-18 19:49:52,672 - __main__ - INFO - Container keycloak is running
+2025-05-18 19:49:52,672 - __main__ - INFO - Testing frontend service
+2025-05-18 19:49:52,678 - __main__ - INFO - Frontend service is accessible (status code: 200)
+2025-05-18 19:49:52,678 - __main__ - INFO - Testing Keycloak service
+2025-05-18 19:49:52,690 - __main__ - INFO - Keycloak service is accessible (status code: 404)
+2025-05-18 19:49:52,690 - __main__ - INFO - Testing MinIO connection
+2025-05-18 19:49:52,693 - __main__ - INFO - MinIO connection successful
+2025-05-18 19:49:52,693 - __main__ - INFO - Testing PostgreSQL connection
+2025-05-18 19:49:52,708 - __main__ - INFO - PostgreSQL connection successful
+2025-05-18 19:49:52,709 - __main__ - INFO - Cleaning up test environment
+2025-05-18 20:17:36,111 - __main__ - INFO - Setting up test environment
+2025-05-18 20:17:47,768 - __main__ - INFO - Testing backend API
+2025-05-18 20:17:47,790 - __main__ - INFO - Backend API is accessible and healthy
+2025-05-18 20:17:47,790 - __main__ - INFO - Testing if all containers are running
+2025-05-18 20:17:47,911 - __main__ - INFO - Container backend is running
+2025-05-18 20:17:47,948 - __main__ - INFO - Container frontend is running
+2025-05-18 20:17:47,991 - __main__ - INFO - Container postgres is running
+2025-05-18 20:17:48,027 - __main__ - INFO - Container minio is running
+2025-05-18 20:17:48,072 - __main__ - INFO - Container keycloak is running
+2025-05-18 20:17:48,072 - __main__ - INFO - Testing frontend service
+2025-05-18 20:17:48,075 - __main__ - INFO - Frontend service is accessible (status code: 200)
+2025-05-18 20:17:48,076 - __main__ - INFO - Testing Keycloak service
+2025-05-18 20:17:48,078 - __main__ - INFO - Keycloak service is accessible (status code: 404)
+2025-05-18 20:17:48,079 - __main__ - INFO - Testing MinIO connection
+2025-05-18 20:17:48,086 - __main__ - INFO - MinIO connection successful
+2025-05-18 20:17:48,086 - __main__ - INFO - Testing PostgreSQL connection
+2025-05-18 20:17:48,108 - __main__ - INFO - PostgreSQL connection successful
+2025-05-18 20:17:48,108 - __main__ - INFO - Cleaning up test environment
