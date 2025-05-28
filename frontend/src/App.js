@@ -1,6 +1,13 @@
 import { useState, useEffect } from "react";
 import "./App.css";
-import { initKeycloak, isAuthenticated, doLogin, doLogout, getToken } from "./keycloak";
+// Use mock Keycloak if REACT_APP_USE_MOCK_AUTH is set to 'true'
+const useMockAuth = process.env.REACT_APP_USE_MOCK_AUTH === 'true';
+const keycloakModule = useMockAuth 
+  ? require('./keycloak-mock') 
+  : require('./keycloak');
+
+const { initKeycloak, isAuthenticated, doLogin, doLogout, getToken } = keycloakModule;
+
 import "./notes/notes.css";
 import "./prescriptions/PrescriptionsPage.css";
 import "./profile/profile.css";
