@@ -11,7 +11,7 @@ def add_doctor_info(user_id, roles):
         conn = current_app.db_pool.getconn()
         cur = conn.cursor()
         cur.execute("""
-            SELECT id FROM doctors_info 
+            SELECT id FROM doctors 
             WHERE user_id = %s
         """, (user_id,))
 
@@ -21,7 +21,7 @@ def add_doctor_info(user_id, roles):
             }), 409
 
         cur.execute("""
-            INSERT INTO doctors_info (first_name, last_name, user_id)
+            INSERT INTO doctors (first_name, last_name, user_id)
             VALUES (%s, %s, %s)
             RETURNING id
         """, (data['first_name'], data['last_name'], user_id))
@@ -49,7 +49,7 @@ def get_doctor_info(user_id, roles):
 
         cur.execute("""
             SELECT id, first_name, last_name
-            FROM doctors_info
+            FROM doctors
             WHERE user_id = %s
         """, (user_id,))
 
@@ -80,7 +80,7 @@ def update_doctor_info(user_id, roles):
         cur = conn.cursor()
 
         cur.execute("""
-            UPDATE doctors_info
+            UPDATE doctors
             SET first_name = %s, last_name = %s
             WHERE user_id = %s
             RETURNING id
@@ -110,7 +110,7 @@ def delete_doctor_info(user_id, roles):
         cur = conn.cursor()
 
         cur.execute("""
-            DELETE FROM doctors_info
+            DELETE FROM doctors
             WHERE user_id = %s
             RETURNING id
         """, (user_id,))

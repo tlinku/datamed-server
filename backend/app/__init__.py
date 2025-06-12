@@ -9,7 +9,6 @@ import os
 
 from .routes.auth import auth_bp
 from .routes.prescriptions_api import prescriptions_bp
-from .routes.special_searches import prescription_routes
 from .routes.doctors_api import doctors_bp
 from .routes.notes_api import notes_bp
 
@@ -59,7 +58,6 @@ def create_app():
 
     app.register_blueprint(auth_bp)
     app.register_blueprint(prescriptions_bp)
-    app.register_blueprint(prescription_routes)
     app.register_blueprint(doctors_bp)
     app.register_blueprint(notes_bp)
 

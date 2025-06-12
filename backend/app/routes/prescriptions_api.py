@@ -3,6 +3,7 @@ from werkzeug.utils import secure_filename
 import os
 from datetime import datetime
 from utilities.keycloak_authentication import keycloak_token_required
+from classes.prescription import Prescription_Methods
 
 prescriptions_bp = Blueprint('prescriptions', __name__)
 
@@ -11,6 +12,14 @@ ALLOWED_EXTENSIONS = {'pdf'}
 
 def allowed_file(filename):
     return '.' in filename and filename.rsplit('.', 1)[1].lower() in ALLOWED_EXTENSIONS
+
+@prescriptions_bp.route('/prescriptions', methods=['GET'])
+@keycloak_token_required
+def get_all_prescriptions(user_id, roles):
+    success, result = Prescription_Methods.findAllPrescriptions(user_id)
+    if success:
+        return jsonify(result), 200
+    return jsonify({'error': result}), 404
 
 @prescriptions_bp.route('/prescriptions', methods=['POST'])
 @keycloak_token_required
@@ -78,6 +87,7 @@ def add_prescription(user_id, roles):
             cur.close()
         if conn:
             current_app.db_pool.putconn(conn)
+
 @prescriptions_bp.route('/prescriptions/no-pdf', methods=['POST'])
 @keycloak_token_required
 def add_prescription_no_pdf(user_id, roles):
@@ -117,6 +127,10 @@ def add_prescription_no_pdf(user_id, roles):
     except Exception as e:
         if conn:
             conn.rollback()
+        print(f"Error in add_prescription_no_pdf: {str(e)}")
+        print(f"Error type: {type(e)}")
+        import traceback
+        print(f"Traceback: {traceback.format_exc()}")
         return jsonify({'error': str(e)}), 500
     finally:
         if cur:
@@ -177,9 +191,7 @@ def delete_prescription(user_id, roles, prescription_id):
             return jsonify({'error': 'Prescription not found'}), 404
 
         if prescription[0]:
-            # Extract file path from URL
             file_path = '/'.join(prescription[0].split('/')[-3:])
-            # Use MinIO for file deletion
             current_app.minio_handler.delete_file(file_path)
 
         cur.execute("""
@@ -199,3 +211,57 @@ def delete_prescription(user_id, roles, prescription_id):
             cur.close()
         if conn:
             current_app.db_pool.putconn(conn)
+
+@prescriptions_bp.route('/prescriptions/search/person', methods=['GET'])
+@keycloak_token_required
+def find_by_person(user_id, roles):
+    first_name = request.args.get('first_name')
+    last_name = request.args.get('last_name')
+    start_date = request.args.get('start_date')
+    end_date = request.args.get('end_date')
+    
+    if not first_name or not last_name:
+        return jsonify({'error': 'First name and last name are required'}), 400
+        
+    success, result = Prescription_Methods.findPrescriptionsByPerson(
+        user_id, first_name, last_name, start_date, end_date
+    )
+    if success:
+        return jsonify(result), 200
+    return jsonify({'error': result}), 404
+
+@prescriptions_bp.route('/prescriptions/search/medication', methods=['GET'])
+@keycloak_token_required
+def find_by_medication(user_id, roles):
+    med_pattern = request.args.get('medication')
+    if not med_pattern:
+        return jsonify({'error': 'Medication pattern is required'}), 400
+        
+    success, result = Prescription_Methods.findByMedication(user_id, med_pattern)
+    if success:
+        return jsonify(result), 200
+    return jsonify({'error': result}), 404
+
+@prescriptions_bp.route('/prescriptions/person', methods=['DELETE'])
+@keycloak_token_required
+def delete_by_name(user_id, roles):
+    data = request.get_json()
+    first_name = data.get('first_name')
+    last_name = data.get('last_name')
+    
+    if not first_name or not last_name:
+        return jsonify({'error': 'First name and last name are required'}), 400
+        
+    success, message = Prescription_Methods.DeleteByName(user_id, first_name, last_name)
+    if success:
+        return jsonify({'message': message}), 200
+    return jsonify({'error': message}), 400
+
+@prescriptions_bp.route('/prescriptions/expired', methods=['DELETE'])
+@keycloak_token_required
+def delete_expired(user_id, roles):
+    before_date = request.args.get('before_date')
+    success, message = Prescription_Methods.deletePrescriptionsByDate(user_id, before_date)
+    if success:
+        return jsonify({'message': message}), 200
+    return jsonify({'error': message}), 400

@@ -1,13 +1,9 @@
 #!/bin/bash
-
-# Wait for Keycloak to be ready
 echo "Waiting for Keycloak to be ready..."
 until curl -s http://keycloak:8080 > /dev/null; do
     sleep 5
 done
 echo "Keycloak is ready!"
-
-# Get admin token
 echo "Getting admin token..."
 ADMIN_TOKEN=$(curl -s -X POST http://keycloak:8080/realms/master/protocol/openid-connect/token \
   -H "Content-Type: application/x-www-form-urlencoded" \
@@ -22,8 +18,6 @@ if [ -z "$ADMIN_TOKEN" ]; then
 fi
 
 echo "Admin token obtained successfully"
-
-# Check if realm exists
 echo "Checking if realm exists..."
 REALM_EXISTS=$(curl -s -o /dev/null -w "%{http_code}" http://keycloak:8080/admin/realms/datamed \
   -H "Authorization: Bearer $ADMIN_TOKEN")
@@ -39,8 +33,6 @@ if [ "$REALM_EXISTS" == "404" ]; then
 else
   echo "Realm already exists"
 fi
-
-# Check if client exists
 echo "Checking if client exists..."
 CLIENT_EXISTS=$(curl -s http://keycloak:8080/admin/realms/datamed/clients \
   -H "Authorization: Bearer $ADMIN_TOKEN" | grep -c "datamed-client" || true)

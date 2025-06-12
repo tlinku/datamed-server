@@ -1,7 +1,7 @@
 import { useState, useEffect } from "react";
 import { useNavigate } from "react-router-dom";
 import "./notes.css";
-import { getToken } from "../keycloak";
+import { getToken, doLogout } from "../keycloak";
 
 function Notes() {
   const apiUrl = process.env.REACT_APP_API_URL || 'http://localhost:5000';
@@ -133,6 +133,9 @@ function Notes() {
       <div className="header">
         <h1>Notes</h1>
         <div className="header-buttons">
+          <button onClick={() => navigate("/dashboard")} className="nav-button">
+            Dashboard
+          </button>
           <button
             onClick={() => navigate("/prescriptions")}
             className="nav-button"
@@ -143,10 +146,7 @@ function Notes() {
             Profile
           </button>
           <button
-            onClick={() => {
-              document.cookie = "auth_token=; path=/; max-age=0";
-              navigate("/");
-            }}
+            onClick={() => doLogout(navigate)}
             className="logout-button"
           >
             Logout

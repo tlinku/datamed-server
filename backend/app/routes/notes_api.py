@@ -1,13 +1,13 @@
 # notes_api.py
 from flask import Blueprint, request, jsonify, current_app
-from utilities.jwt_authentication import token_required
+from utilities.keycloak_authentication import keycloak_token_required
 import json
 
 notes_bp = Blueprint('notes', __name__)
 
 @notes_bp.route('/notes', methods=['POST'])
-@token_required
-def add_note(current_user_id):
+@keycloak_token_required
+def add_note(current_user_id, roles):
     try:
         data = request.get_json()
         note_content = {
@@ -39,8 +39,8 @@ def add_note(current_user_id):
             current_app.db_pool.putconn(conn)
 
 @notes_bp.route('/notes', methods=['GET'])
-@token_required
-def get_all_notes(current_user_id):
+@keycloak_token_required
+def get_all_notes(current_user_id, roles):
     try:
         conn = current_app.db_pool.getconn()
         cur = conn.cursor()
@@ -66,8 +66,8 @@ def get_all_notes(current_user_id):
             current_app.db_pool.putconn(conn)
 
 @notes_bp.route('/notes/<int:note_id>', methods=['PUT'])
-@token_required
-def update_note(current_user_id, note_id):
+@keycloak_token_required
+def update_note(current_user_id, roles, note_id):
     try:
         data = request.get_json()
         note_content = {
@@ -102,8 +102,8 @@ def update_note(current_user_id, note_id):
             current_app.db_pool.putconn(conn)
 
 @notes_bp.route('/notes/<int:note_id>', methods=['DELETE'])
-@token_required
-def delete_note(current_user_id, note_id):
+@keycloak_token_required
+def delete_note(current_user_id, roles, note_id):
     try:
         conn = current_app.db_pool.getconn()
         cur = conn.cursor()
@@ -131,8 +131,8 @@ def delete_note(current_user_id, note_id):
             current_app.db_pool.putconn(conn)
 
 @notes_bp.route('/notes', methods=['DELETE'])
-@token_required
-def delete_all_notes(current_user_id):
+@keycloak_token_required
+def delete_all_notes(current_user_id, roles):
     try:
         conn = current_app.db_pool.getconn()
         cur = conn.cursor()
@@ -160,8 +160,8 @@ def delete_all_notes(current_user_id):
         if conn:
             current_app.db_pool.putconn(conn)
 @notes_bp.route('/notes/<int:note_id>', methods=['GET'])
-@token_required
-def get_note(current_user_id, note_id):
+@keycloak_token_required
+def get_note(current_user_id, role, note_id):
     try:
         conn = current_app.db_pool.getconn()
         cur = conn.cursor()

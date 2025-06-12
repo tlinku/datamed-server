@@ -1,159 +1,399 @@
 .prescriptions-page {
-  padding: 2rem;
-  max-width: 1200px;
   margin: 0 auto;
+  background: linear-gradient(135deg, #E8F4FD 0%, #F0F8FF 100%);
+  min-height: 100vh;
 }
-
 .header {
   display: flex;
   justify-content: space-between;
   align-items: center;
   margin-bottom: 2rem;
+  flex-wrap: wrap;
+  gap: 1rem;
+}
+button{
+  background-color: skyblue;
+  margin: 1rem;
+}
+input{
+  margin: 1rem;
+}
+.tool-box{
+  width: 90%;
+  align-items: center;
 }
 
 .add-button {
-  background-color: #4caf50;
+  background: linear-gradient(135deg, #00A86B 0%, #00CC7A 100%);
+  color: white;
+  border: none;
+  padding: 14px 28px;
+  border-radius: 10px;
+  cursor: pointer;
+  font-weight: 600;
+  font-size: 1rem;
+  box-shadow: 0 4px 15px rgba(0, 168, 107, 0.3);
+  transition: all 0.3s ease;
+}
+
+.add-button:hover {
+  background: linear-gradient(135deg, #008A5A 0%, #00A86B 100%);
+  transform: translateY(-2px);
+  box-shadow: 0 6px 20px rgba(0, 168, 107, 0.4);
+}
+
+.upload-option-toggle {
+  background: linear-gradient(135deg, #0052CC 0%, #0066FF 100%);
   color: white;
   border: none;
   padding: 10px 20px;
-  border-radius: 4px;
+  border-radius: 8px;
   cursor: pointer;
+  font-weight: 500;
+  margin-left: 10px;
+  transition: all 0.3s ease;
+}
+
+.upload-option-toggle:hover {
+  background: linear-gradient(135deg, #003D99 0%, #0052CC 100%);
+  transform: translateY(-1px);
 }
 
 .error-message {
-  background-color: #ffebee;
-  color: #c62828;
-  padding: 1rem;
-  border-radius: 4px;
-  margin-bottom: 1rem;
+  background: linear-gradient(135deg, #FFEBEE 0%, #FFCDD2 100%);
+  color: #DC3545;
+  padding: 1.5rem;
+  border-radius: 12px;
+  margin-bottom: 1.5rem;
+  border-left: 4px solid #DC3545;
+  font-weight: 500;
+  box-shadow: 0 2px 10px rgba(220, 53, 69, 0.1);
 }
 
 .prescription-form {
   background: white;
-  padding: 2rem;
-  border-radius: 8px;
-  box-shadow: 0 2px 4px rgba(0, 0, 0, 0.1);
+  padding: 2.5rem;
+  border-radius: 16px;
+  box-shadow: 0 2px 10px rgba(0, 82, 204, 0.1);
   margin-bottom: 2rem;
+  border: 1px solid #DEE2E6;
+}
+
+.prescription-form h3 {
+  color: #0052CC;
+  margin-bottom: 1.5rem;
+  font-size: 1.5rem;
+  font-weight: 600;
 }
 
 .form-row {
-  display: flex;
-  gap: 1rem;
+  display: grid;
+  grid-template-columns: repeat(auto-fit, minmax(250px, 1fr));
+  gap: 1.5rem;
+  margin-bottom: 1rem;
 }
 
 .form-group {
-  margin-bottom: 1rem;
-  flex: 1;
+  margin-bottom: 1.5rem;
 }
 
 .form-group label {
   display: block;
-  margin-bottom: 0.5rem;
-  font-weight: 500;
+  margin-bottom: 0.7rem;
+  font-weight: 600;
+  color: #2C3E50;
+  font-size: 0.95rem;
 }
 
-.form-group input {
+.form-group input, .form-group select, .form-group textarea {
   width: 100%;
-  padding: 0.5rem;
-  border: 1px solid #ddd;
-  border-radius: 4px;
+  padding: 12px 16px;
+  border: 2px solid #DEE2E6;
+  border-radius: 8px;
+  font-size: 1rem;
+  transition: all 0.3s ease;
+  background: #F8F9FA;
+}
+
+.form-group input:focus, .form-group select:focus, .form-group textarea:focus {
+  outline: none;
+  border-color: #0052CC;
+  box-shadow: 0 0 0 3px rgba(0, 82, 204, 0.1);
+  background: white;
 }
 
 .search-box {
   margin-bottom: 2rem;
+  background: white;
+  padding: 1.5rem;
+  border-radius: 12px;
+  box-shadow: 0 2px 10px rgba(0, 82, 204, 0.1);
+  border: 1px solid #DEE2E6;
 }
 
 .search-box input {
-  width: 100%;
-  padding: 0.75rem;
-  border: 1px solid #ddd;
-  border-radius: 4px;
+  width: 95%;
+  padding: 12px 16px;
+  border: 2px solid #DEE2E6;
+  border-radius: 8px;
   font-size: 1rem;
+  background: #F8F9FA;
+  transition: all 0.3s ease;
+}
+
+.search-box input:focus {
+  outline: none;
+  border-color: #0052CC;
+  box-shadow: 0 0 0 3px rgba(0, 82, 204, 0.1);
+  background: white;
 }
 
 .prescriptions-grid {
   display: grid;
-  grid-template-columns: repeat(auto-fill, minmax(300px, 1fr));
-  gap: 1.5rem;
+  grid-template-columns: repeat(auto-fill, minmax(350px, 1fr));
+  gap: 2rem;
+  padding-left: 2rem;
+  padding-left: 2rem;
+  margin-top: 2rem;
 }
 
 .prescription-card {
   background: white;
-  padding: 1.5rem;
-  border-radius: 8px;
-  box-shadow: 0 2px 4px rgba(0, 0, 0, 0.1);
+  padding: 2rem;
+  border-radius: 16px;
+  box-shadow: 0 2px 10px rgba(0, 82, 204, 0.1);
+  border: 1px solid #DEE2E6;
+  transition: all 0.3s ease;
+  position: relative;
+}
+
+.prescription-card:hover {
+  transform: translateY(-4px);
+  box-shadow: 0 8px 25px rgba(0, 82, 204, 0.15);
+}
+
+.prescription-card::before {
+  position: absolute;
+  top: 1rem;
+  right: 1rem;
+  font-size: 1.5rem;
+  opacity: 0.3;
 }
 
 .card-header {
   display: flex;
   justify-content: space-between;
-  align-items: start;
-  margin-bottom: 1rem;
+  align-items: flex-start;
+  margin-bottom: 1.5rem;
+  padding-bottom: 1rem;
+  border-bottom: 2px solid #F8F9FA;
+}
+
+.card-header h4 {
+  color: #0052CC;
+  margin: 0;
+  font-size: 1.3rem;
+  font-weight: 600;
 }
 
 .delete-button {
-  background: none;
+  background: linear-gradient(135deg, #DC3545 0%, #FF4757 100%);
   border: none;
-  color: #dc3545;
-  font-size: 1.5rem;
+  color: white;
+  font-size: 1.2rem;
   cursor: pointer;
-  padding: 0;
+  padding: 8px 12px;
+  border-radius: 50%;
   line-height: 1;
+  transition: all 0.3s ease;
+  width: 36px;
+  height: 36px;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+}
+
+.delete-button:hover {
+  background: linear-gradient(135deg, #C82333 0%, #DC3545 100%);
+  transform: scale(1.1);
+  box-shadow: 0 4px 12px rgba(220, 53, 69, 0.3);
 }
 
 .view-pdf-button {
   display: inline-block;
-  background-color: #1a73e8;
+  background: linear-gradient(135deg, #0052CC 0%, #0066FF 100%);
   color: white;
-  padding: 8px 16px;
-  border-radius: 4px;
+  padding: 10px 20px;
+  border-radius: 8px;
   text-decoration: none;
   margin-top: 1rem;
+  font-weight: 500;
+  transition: all 0.3s ease;
+  text-align: center;
+}
+
+.view-pdf-button:hover {
+  background: linear-gradient(135deg, #003D99 0%, #0052CC 100%);
+  transform: translateY(-1px);
+  box-shadow: 0 4px 12px rgba(0, 82, 204, 0.3);
+  text-decoration: none;
+  color: white;
 }
 
 .loading {
   text-align: center;
-  padding: 2rem;
-  color: #666;
+  padding: 3rem;
+  color: #0052CC;
+  font-size: 1.2rem;
+  font-weight: 500;
 }
 
 .submit-button {
-  background-color: #1a73e8;
+  background: linear-gradient(135deg, #0052CC 0%, #0066FF 100%);
   color: white;
   border: none;
-  padding: 10px 20px;
-  border-radius: 4px;
+  padding: 14px 28px;
+  border-radius: 10px;
   cursor: pointer;
   width: 100%;
-  margin-top: 1rem;
+  margin-top: 1.5rem;
+  font-size: 1.1rem;
+  font-weight: 600;
+  transition: all 0.3s ease;
+  box-shadow: 0 4px 15px rgba(0, 82, 204, 0.3);
 }
+
+.submit-button:hover {
+  background: linear-gradient(135deg, #003D99 0%, #0052CC 100%);
+  transform: translateY(-2px);
+  box-shadow: 0 6px 20px rgba(0, 82, 204, 0.4);
+}
+
+.submit-button:disabled {
+  background: #CCC;
+  transform: none;
+  box-shadow: none;
+  cursor: not-allowed;
+}
+
 .header-buttons {
   display: flex;
-  gap: 0.5rem;
+  gap: 1rem;
+  flex-wrap: wrap;
 }
 
 .nav-button {
-  background-color: #1a73e8;
+  background: linear-gradient(135deg, #0052CC 0%, #0066FF 100%);
   color: white;
   border: none;
-  padding: 8px 16px;
-  border-radius: 4px;
+  padding: 10px 20px;
+  border-radius: 8px;
   cursor: pointer;
-}
-
-.logout-button {
-  background-color: #dc3545;
-  color: white;
-  border: none;
-  padding: 8px 16px;
-  border-radius: 4px;
-  cursor: pointer;
+  font-weight: 500;
+  transition: all 0.3s ease;
 }
 
 .nav-button:hover {
-  background-color: #357abd;
+  background: linear-gradient(135deg, #003D99 0%, #0052CC 100%);
+  transform: translateY(-1px);
+}
+
+.logout-button {
+  background: linear-gradient(135deg, #DC3545 0%, #FF4757 100%);
+  color: white;
+  border: none;
+  padding: 10px 20px;
+  border-radius: 8px;
+  cursor: pointer;
+  font-weight: 500;
+  transition: all 0.3s ease;
 }
 
 .logout-button:hover {
-  background-color: #c82333;
+  background: linear-gradient(135deg, #C82333 0%, #DC3545 100%);
+  transform: translateY(-1px);
+}
+.upload-options {
+  background: #E3F2FD;
+  padding: 1.5rem;
+  border-radius: 12px;
+  margin-bottom: 1.5rem;
+  border: 1px solid #BBDEFB;
+}
+
+.upload-options h4 {
+  color: #0052CC;
+  margin: 0 0 1rem 0;
+  font-size: 1.1rem;
+  font-weight: 600;
+}
+
+.option-buttons {
+  display: flex;
+  gap: 1rem;
+  flex-wrap: wrap;
+}
+
+.option-button {
+  padding: 10px 20px;
+  border: 2px solid #0052CC;
+  border-radius: 8px;
+  background: white;
+  color: #0052CC;
+  cursor: pointer;
+  font-weight: 500;
+  transition: all 0.3s ease;
+}
+
+.option-button.active {
+  background: #0052CC;
+  color: white;
+}
+
+.option-button:hover {
+  background: #0052CC;
+  color: white;
+  transform: translateY(-1px);
+}
+.prescription-info {
+  line-height: 1.6;
+}
+
+.prescription-info p {
+  margin-bottom: 0.5rem;
+  color: #2C3E50;
+}
+
+.prescription-info strong {
+  color: #0052CC;
+  font-weight: 600;
+}
+
+.no-pdf-notice {
+  background: linear-gradient(135deg, #FFF3CD 0%, #FFEAA7 100%);
+  color: #856404;
+  padding: 10px 15px;
+  border-radius: 8px;
+  margin-top: 1rem;
+  font-size: 0.9rem;
+  font-weight: 500;
+  border: 1px solid #FFEAA7;
+}
+@media (max-width: 768px) {
+  .header {
+    flex-direction: column;
+    gap: 1rem;
+  }
+  
+  .form-row {
+    grid-template-columns: 1fr;
+  }
+  
+  .prescriptions-grid {
+    grid-template-columns: 1fr;
+  }
+  
+  .auth-buttons {
+    flex-direction: column;
+  }
 }

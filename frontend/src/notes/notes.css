@@ -2,6 +2,8 @@
   padding: 2rem;
   max-width: 1200px;
   margin: 0 auto;
+  background: linear-gradient(135deg, #E8F4FD 0%, #F0F8FF 100%);
+  min-height: 100vh;
 }
 
 .header {

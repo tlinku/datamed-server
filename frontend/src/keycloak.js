@@ -25,8 +25,6 @@ export const initKeycloak = (onAuthenticatedCallback) => {
   isInitializing = true;
   console.log('Starting Keycloak initialization...');
   console.log('Current URL:', window.location.href);
-  
-  // Check if we have authentication parameters in the URL
   const url = new URL(window.location.href);
   const hasAuthParams = url.searchParams.has('code') && url.searchParams.has('state');
 
@@ -34,9 +32,7 @@ export const initKeycloak = (onAuthenticatedCallback) => {
   console.log('Has authentication parameters:', hasAuthParams);
   console.log('window.location.origin:', window.location.origin);
   console.log('window.location.href:', window.location.href);
-  
-  // Set a longer timeout when processing authentication parameters
-  const timeoutDuration = hasAuthParams ? 20000 : 5000; // 20s for auth, 5s for normal check
+  const timeoutDuration = hasAuthParams ? 20000 : 5000; 
   const timeoutId = setTimeout(() => {
     console.warn('Keycloak initialization timeout after', timeoutDuration/1000, 'seconds');
     isInitialized = true;
@@ -44,9 +40,8 @@ export const initKeycloak = (onAuthenticatedCallback) => {
     onAuthenticatedCallback();
   }, timeoutDuration);
 
-  // Different initialization strategy based on whether we have auth parameters
+
   const initOptions = hasAuthParams ? {
-    // When we have auth parameters, process them directly
     onLoad: 'login-required',
     checkLoginIframe: false,
     pkceMethod: 'S256',
@@ -54,7 +49,6 @@ export const initKeycloak = (onAuthenticatedCallback) => {
     enableLogging: true,
     flow: 'standard',
   } : {
-    // When no auth parameters, use silent SSO check
     onLoad: 'check-sso',
     silentCheckSsoRedirectUri: window.location.origin + '/silent-check-sso.html',
     pkceMethod: 'S256',
@@ -68,7 +62,7 @@ export const initKeycloak = (onAuthenticatedCallback) => {
 
   keycloak.init(initOptions)
   .then((authenticated) => {
-    clearTimeout(timeoutId); // Clear the timeout since init succeeded
+    clearTimeout(timeoutId); 
     isInitialized = true;
     isInitializing = false;
     console.log('Keycloak init success, authenticated:', authenticated);
@@ -81,13 +75,10 @@ export const initKeycloak = (onAuthenticatedCallback) => {
     if (authenticated && keycloak.token) {
       console.log('User authenticated successfully with token');
       localStorage.setItem('isAuthenticated', 'true');
-      
-      // Set cookie with proper expiration
       const expirationDate = new Date();
-      expirationDate.setTime(expirationDate.getTime() + (24 * 60 * 60 * 1000)); // 24 hours
+      expirationDate.setTime(expirationDate.getTime() + (24 * 60 * 60 * 1000)); 
       document.cookie = `auth_token=${keycloak.token}; path=/; expires=${expirationDate.toUTCString()}`;
       
-      // Clean URL after successful authentication - but only after we've processed the tokens
       const currentUrl = new URL(window.location.href);
       if (currentUrl.searchParams.has('session_code') || 
           currentUrl.searchParams.has('code') || 
@@ -95,8 +86,6 @@ export const initKeycloak = (onAuthenticatedCallback) => {
         console.log('Cleaning authentication URL parameters...');
         window.history.replaceState({}, document.title, window.location.origin);
       }
-      
-      // Set up token refresh
       keycloak.onTokenExpired = () => {
         console.log('Token expired, refreshing...');
         keycloak.updateToken(70).catch(() => {
@@ -114,7 +103,7 @@ export const initKeycloak = (onAuthenticatedCallback) => {
     onAuthenticatedCallback();
   })
   .catch((error) => {
-    clearTimeout(timeoutId); // Clear the timeout since we got a response
+    clearTimeout(timeoutId); 
     isInitialized = true;
     isInitializing = false;
     console.error('Keycloak init failed:', error);
@@ -136,7 +125,33 @@ export const doLogin = () => {
   });
 };
 
-export const doLogout = () => keycloak.logout();
+export const doLogout = async (navigate) => {
+  console.log('Initiating logout...');
+  try {
+    const token = getToken();
+    if (token) {
+      await fetch(`${process.env.REACT_APP_API_URL || 'http://localhost:5000'}/auth/logout`, {
+        method: 'POST',
+        headers: {
+          'Authorization': `Bearer ${token}`,
+          'Content-Type': 'application/json'
+        },
+        credentials: 'include'
+      }).catch(err => console.log('Backend logout call failed:', err));
+    }
+  } catch (error) {
+    console.log('Error during logout:', error);
+  }
+  localStorage.removeItem('isAuthenticated');
+  document.cookie = 'auth_token=; path=/; expires=Thu, 01 Jan 1970 00:00:01 GMT;';
+  if (navigate) {
+    navigate('/');
+    return;
+  }
+  return keycloak.logout({
+    redirectUri: window.location.origin
+  });
+};
 
 export const getToken = () => keycloak.token;
 

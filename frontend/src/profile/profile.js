@@ -1,7 +1,7 @@
 import { useState, useEffect } from "react";
 import { useNavigate } from "react-router-dom";
 import "./profile.css";
-import { getToken } from "../keycloak";
+import { getToken, doLogout } from "../keycloak";
 
 function Profile() {
   const apiUrl = process.env.REACT_APP_API_URL || 'http://localhost:5000';
@@ -118,6 +118,9 @@ function Profile() {
       <div className="header">
         <h1>Doctor Profile</h1>
         <div className="header-buttons">
+          <button onClick={() => navigate("/dashboard")} className="nav-button">
+            Dashboard
+          </button>
           <button
             onClick={() => navigate("/prescriptions")}
             className="nav-button"
@@ -128,10 +131,7 @@ function Profile() {
             Notes
           </button>
           <button
-            onClick={() => {
-              document.cookie = "auth_token=; path=/; max-age=0";
-              navigate("/");
-            }}
+            onClick={() => doLogout(navigate)}
             className="logout-button"
           >
             Logout
@@ -162,14 +162,14 @@ function Profile() {
                   Edit Information
                 </button>
                 <button onClick={handleDelete} className="delete-button">
-                  Delete Information
+                  Delete Info
                 </button>
               </div>
             </div>
           ) : (
             <form onSubmit={handleSubmit} className="profile-form">
               <h2>
-                {doctorInfo ? "Edit Information" : "Add Doctor Information"}
+                {doctorInfo ? "Edit Info" : "Add Doctor Info"}
               </h2>
               <div className="form-group">
                 <label>First Name:</label>
