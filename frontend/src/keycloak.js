@@ -12,26 +12,17 @@ let isInitializing = false;
 
 export const initKeycloak = (onAuthenticatedCallback) => {
   if (isInitialized) {
-    console.log('Keycloak already initialized, calling callback immediately');
     onAuthenticatedCallback();
     return;
   }
   
   if (isInitializing) {
-    console.log('Keycloak initialization already in progress, ignoring duplicate call');
     return;
   }
   
   isInitializing = true;
-  console.log('Starting Keycloak initialization...');
-  console.log('Current URL:', window.location.href);
   const url = new URL(window.location.href);
   const hasAuthParams = url.searchParams.has('code') && url.searchParams.has('state');
-
-  
-  console.log('Has authentication parameters:', hasAuthParams);
-  console.log('window.location.origin:', window.location.origin);
-  console.log('window.location.href:', window.location.href);
   const timeoutDuration = hasAuthParams ? 20000 : 5000; 
   const timeoutId = setTimeout(() => {
     console.warn('Keycloak initialization timeout after', timeoutDuration/1000, 'seconds');
@@ -58,22 +49,12 @@ export const initKeycloak = (onAuthenticatedCallback) => {
     flow: 'standard',
   };
 
-  console.log('Initializing Keycloak with options:', initOptions);
-
   keycloak.init(initOptions)
   .then((authenticated) => {
     clearTimeout(timeoutId); 
     isInitialized = true;
     isInitializing = false;
-    console.log('Keycloak init success, authenticated:', authenticated);
-    console.log('Token:', keycloak.token ? 'Present (length: ' + keycloak.token.length + ')' : 'Missing');
-    console.log('Refresh token:', keycloak.refreshToken ? 'Present' : 'Missing');
-    console.log('ID token:', keycloak.idToken ? 'Present' : 'Missing');
-    console.log('Token parsed:', keycloak.tokenParsed ? 'Present' : 'Missing');
-    console.log('Current URL after init:', window.location.href);
-    
     if (authenticated && keycloak.token) {
-      console.log('User authenticated successfully with token');
       localStorage.setItem('isAuthenticated', 'true');
       const expirationDate = new Date();
       expirationDate.setTime(expirationDate.getTime() + (24 * 60 * 60 * 1000)); 
@@ -83,20 +64,14 @@ export const initKeycloak = (onAuthenticatedCallback) => {
       if (currentUrl.searchParams.has('session_code') || 
           currentUrl.searchParams.has('code') || 
           currentUrl.pathname.includes('login-actions')) {
-        console.log('Cleaning authentication URL parameters...');
         window.history.replaceState({}, document.title, window.location.origin);
       }
       keycloak.onTokenExpired = () => {
-        console.log('Token expired, refreshing...');
         keycloak.updateToken(70).catch(() => {
-          console.log('Token refresh failed, redirecting to login');
           keycloak.login();
         });
       };
     } else {
-      console.log('User not authenticated or token missing');
-      console.log('Authenticated:', authenticated);
-      console.log('Token present:', !!keycloak.token);
       localStorage.removeItem('isAuthenticated');
     }
     
@@ -105,13 +80,7 @@ export const initKeycloak = (onAuthenticatedCallback) => {
   .catch((error) => {
     clearTimeout(timeoutId); 
     isInitialized = true;
-    isInitializing = false;
-    console.error('Keycloak init failed:', error);
-    console.error('Error type:', typeof error);
-    console.error('Error message:', error.message);
-    console.error('Error stack:', error.stack);
-    console.log('Current URL during error:', window.location.href);
-    
+    isInitializing = false;    
     localStorage.removeItem('isAuthenticated');
     document.cookie = 'auth_token=; path=/; expires=Thu, 01 Jan 1970 00:00:01 GMT;';
     onAuthenticatedCallback();
@@ -119,14 +88,12 @@ export const initKeycloak = (onAuthenticatedCallback) => {
 };
 
 export const doLogin = () => {
-  console.log('Initiating login...');
   return keycloak.login({
     redirectUri: window.location.origin,
   });
 };
 
 export const doLogout = async (navigate) => {
-  console.log('Initiating logout...');
   try {
     const token = getToken();
     if (token) {
@@ -140,7 +107,6 @@ export const doLogout = async (navigate) => {
       }).catch(err => console.log('Backend logout call failed:', err));
     }
   } catch (error) {
-    console.log('Error during logout:', error);
   }
   localStorage.removeItem('isAuthenticated');
   document.cookie = 'auth_token=; path=/; expires=Thu, 01 Jan 1970 00:00:01 GMT;';

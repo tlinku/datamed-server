@@ -15,22 +15,16 @@ function App() {
   const [error, setError] = useState("");
 
   useEffect(() => {
-    console.log('App mounted, initializing Keycloak...');
     
     initKeycloak(() => {
-      console.log('Keycloak callback executed');
-      console.log('Is authenticated:', isAuthenticated());
-      console.log('Token:', getToken() ? 'Present' : 'Missing');
       setInitialized(true);
       setAuthenticated(isAuthenticated());
-      console.log('Setting loading to false...');
       setLoading(false);
     });
   }, []);
 
   const handleLogin = () => {
     setLoading(true);
-    console.log("Starting login process...");
     doLogin();
   };
 
@@ -40,7 +34,6 @@ function App() {
 
 
   if (authenticated) {
-    console.log('Showing full-screen authenticated content');
     return (
       <Router>
         <Routes>
@@ -59,7 +52,6 @@ function App() {
       <div className="auth-box">
         <h1>Welcome to Datamed</h1>
         <div style={{fontSize: '12px', color: 'gray'}}>
-          Debug: loading={loading.toString()}, authenticated={authenticated.toString()}, initialized={initialized.toString()}
         </div>
         {error && <div className="error">{error}</div>}
         {loading ? (
