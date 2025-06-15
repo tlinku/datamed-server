@@ -2,32 +2,42 @@ from flask import Blueprint, request, jsonify, current_app
 from utilities.authentication import Authentication
 from werkzeug.security import check_password_hash
 from utilities.keycloak_authentication import delete_keycloak_user, find_keycloak_user_by_email, keycloak_token_required
+from utilities.security_utils import InputValidator, rate_limit_decorator
 
 auth_bp = Blueprint('auth', __name__)
 
 @auth_bp.route('/auth/password', methods=['PUT'])
-def update_password_via_site():
+@rate_limit_decorator(max_requests=5, per_seconds=300)  # 5 attempts per 5 minutes
+@keycloak_token_required
+def update_password_via_site(user_id, roles):
     data = request.get_json()
     conn = None
     cur = None
 
     if not data or not data.get('email') or not data.get('old_password') or not data.get('new_password'):
         return jsonify({'error': 'Missing required fields'}), 400
+    if not InputValidator.validate_email(data['email']):
+        return jsonify({'error': 'Invalid email format'}), 400
+    is_valid, message = InputValidator.validate_password(data['new_password'])
+    if not is_valid:
+        return jsonify({'error': message}), 400
+    email = InputValidator.sanitize_string(data['email'])
+    old_password = data['old_password']
+    new_password = data['new_password']
 
     try:
         conn = current_app.db_pool.getconn()
         cur = conn.cursor()
-
         cur.execute(
-            "SELECT id, password_hash FROM users WHERE email = %s",
-            (data['email'],)
+            "SELECT id, password_hash FROM users WHERE email = %s AND id = %s",
+            (email, user_id)
         )
         user = cur.fetchone()
 
-        if not user or not check_password_hash(user[1], data['old_password']):
+        if not user or not check_password_hash(user[1], old_password):
             return jsonify({'error': 'Invalid credentials'}), 401
 
-        new_password_hash = Authentication.hash_password(data['new_password'])
+        new_password_hash = Authentication.hash_password(new_password)
         cur.execute(
             "UPDATE users SET password_hash = %s WHERE id = %s",
             (new_password_hash, user[0])
@@ -39,7 +49,7 @@ def update_password_via_site():
     except Exception as e:
         if conn:
             conn.rollback()
-        return jsonify({'error': str(e)}), 500
+        return jsonify({'error': 'Internal server error'}), 500
     finally:
         if cur:
             cur.close()
@@ -106,10 +116,6 @@ def delete_account():
 @auth_bp.route('/auth/logout', methods=['POST'])
 @keycloak_token_required
 def logout(user_id, roles):
-    """
-    Logout endpoint - invalidates the token on the server side
-    Frontend should also clear the token from storage
-    """
     try:
         return jsonify({'message': 'Logout successful'}), 200
     except Exception as e:

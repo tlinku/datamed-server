@@ -7,6 +7,7 @@ import Profile from "./profile/profile";
 import Notes from "./notes/notes";
 import "./App.css";
 
+
 function App() {
   const [initialized, setInitialized] = useState(false);
   const [authenticated, setAuthenticated] = useState(false);
@@ -34,10 +35,10 @@ function App() {
   };
 
   const handleRegister = () => {
-    window.location.href = `${process.env.REACT_APP_KEYCLOAK_URL || 'http://localhost:8080'}/auth/realms/${process.env.REACT_APP_KEYCLOAK_REALM || 'datamed'}/protocol/openid-connect/registrations?client_id=${process.env.REACT_APP_KEYCLOAK_CLIENT_ID || 'datamed-client'}&response_type=code&redirect_uri=${window.location.origin}`;
+    window.location.href = `${process.env.REACT_APP_KEYCLOAK_URL || 'http://localhost'}/auth/realms/${process.env.REACT_APP_KEYCLOAK_REALM || 'datamed'}/protocol/openid-connect/registrations?client_id=${process.env.REACT_APP_KEYCLOAK_CLIENT_ID || 'datamed-client'}&response_type=code&redirect_uri=${window.location.origin}`;
   };
 
-  // Render authenticated content full-screen
+
   if (authenticated) {
     console.log('Showing full-screen authenticated content');
     return (

@@ -1,10 +1,10 @@
 import { useState, useEffect } from "react";
 import { useNavigate } from "react-router-dom";
-import { getToken } from "../keycloak";
+import { doLogout, getToken } from "../keycloak";
 import "./Dashboard.css";
 
 function Dashboard() {
-  const apiUrl = process.env.REACT_APP_API_URL || 'http://localhost:5000';
+  const apiUrl = process.env.REACT_APP_API_URL || 'https://localhost/api';
   const navigate = useNavigate();
   const [stats, setStats] = useState({
     prescriptions: 0,
@@ -85,6 +85,7 @@ function Dashboard() {
             onClick={() => {
               document.cookie = "auth_token=; path=/; max-age=0";
               navigate("/");
+              doLogout()
             }}
             className="logout-button"
           >

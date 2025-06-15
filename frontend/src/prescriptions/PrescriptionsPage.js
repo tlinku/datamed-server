@@ -4,7 +4,7 @@ import "./PrescriptionsPage.css";
 import { getToken, doLogout } from "../keycloak";
 
 function PrescriptionsPage() {
-  const apiUrl = process.env.REACT_APP_API_URL || 'http://localhost:5000';
+  const apiUrl = process.env.REACT_APP_API_URL || 'https://localhost/api';
   const navigate = useNavigate();
   const [prescriptions, setPrescriptions] = useState([]);
   const [loading, setLoading] = useState(true);
@@ -332,7 +332,7 @@ function PrescriptionsPage() {
             👤 Profile
           </button>
           <button
-            onClick={() => doLogout(navigate)}
+            onClick={() => doLogout()}
             className="logout-button"
           >
             🚪 Logout

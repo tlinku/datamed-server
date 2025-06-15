@@ -3,7 +3,9 @@ from werkzeug.utils import secure_filename
 import os
 from datetime import datetime
 from utilities.keycloak_authentication import keycloak_token_required
+from utilities.security_utils import InputValidator, validate_file_upload, rate_limit_decorator
 from classes.prescription import Prescription_Methods
+from utilities.security_utils import InputValidator, validate_file_upload, rate_limit_decorator
 
 prescriptions_bp = Blueprint('prescriptions', __name__)
 
@@ -23,6 +25,8 @@ def get_all_prescriptions(user_id, roles):
 
 @prescriptions_bp.route('/prescriptions', methods=['POST'])
 @keycloak_token_required
+@validate_file_upload
+@rate_limit_decorator(max_requests=10, per_seconds=60)  
 def add_prescription(user_id, roles):
     conn = None
     cur = None
@@ -40,6 +44,20 @@ def add_prescription(user_id, roles):
         missing_keys = [key for key in required_keys if key not in data]
         if missing_keys:
             return jsonify({'error': f'Missing required fields: {", ".join(missing_keys)}'}), 400
+        if not InputValidator.validate_name(data['first_name']):
+            return jsonify({'error': 'Invalid first name format'}), 400
+        
+        if not InputValidator.validate_name(data['last_name']):
+            return jsonify({'error': 'Invalid last name format'}), 400
+        
+        if not InputValidator.validate_pesel(data['pesel']):
+            return jsonify({'error': 'Invalid PESEL number'}), 400
+        first_name = InputValidator.sanitize_string(data['first_name'])
+        last_name = InputValidator.sanitize_string(data['last_name'])
+        pesel = data['pesel']  
+        med_info = InputValidator.sanitize_string(data.get('med_info_for_search', ''))
+        if not current_app.minio_handler:
+            return jsonify({'error': 'File storage service is currently unavailable'}), 503
 
         timestamp = datetime.now().strftime('%Y%m%d_%H%M%S')
         filename = secure_filename(f"{user_id}_{timestamp}_{file.filename}")
@@ -60,13 +78,13 @@ def add_prescription(user_id, roles):
             RETURNING id
         """, (
             user_id,
-            data['first_name'],
-            data['last_name'],
-            data['pesel'],
+            first_name,
+            last_name,
+            pesel,
             data['issue_date'],
             data['expiry_date'],
             file_url,
-            data.get('med_info_for_search', '')
+            med_info
         ))
 
         prescription_id = cur.fetchone()[0]
@@ -190,9 +208,11 @@ def delete_prescription(user_id, roles, prescription_id):
         if not prescription:
             return jsonify({'error': 'Prescription not found'}), 404
 
-        if prescription[0]:
+        if prescription[0] and current_app.minio_handler:
             file_path = '/'.join(prescription[0].split('/')[-3:])
             current_app.minio_handler.delete_file(file_path)
+        elif prescription[0] and not current_app.minio_handler:
+            current_app.logger.warning(f"Cannot delete file {prescription[0]} - MinIO unavailable")
 
         cur.execute("""
             DELETE FROM prescriptions 

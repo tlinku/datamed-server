@@ -1,7 +1,7 @@
 import Keycloak from 'keycloak-js';
 
 const keycloakConfig = {
-  url: (process.env.REACT_APP_KEYCLOAK_URL || 'http://localhost:8080') + '/auth',
+  url: (process.env.REACT_APP_KEYCLOAK_URL || 'https://localhost') + '/auth', // Use HTTPS and portless localhost for nginx proxy
   realm: process.env.REACT_APP_KEYCLOAK_REALM || 'datamed',
   clientId: process.env.REACT_APP_KEYCLOAK_CLIENT_ID || 'datamed-client'
 };

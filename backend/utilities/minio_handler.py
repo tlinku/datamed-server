@@ -3,6 +3,7 @@ from minio.error import S3Error
 import os
 from flask import current_app
 import io
+from datetime import timedelta
 
 class MinioHandler:
     def __init__(self, app=None):
@@ -12,9 +13,24 @@ class MinioHandler:
 
     def init_app(self, app):
         minio_url = os.getenv('MINIO_URL', 'http://minio:9000').replace('http://', '')
-        minio_access_key = os.getenv('MINIO_ACCESS_KEY', 'minioadmin')
-        minio_secret_key = os.getenv('MINIO_SECRET_KEY', 'minioadmin')
+        minio_access_key_file = os.getenv('MINIO_ACCESS_KEY_FILE')
+        minio_secret_key_file = os.getenv('MINIO_SECRET_KEY_FILE')
+        
+        if minio_access_key_file and os.path.exists(minio_access_key_file):
+            with open(minio_access_key_file, 'r') as f:
+                minio_access_key = f.read().strip()
+        else:
+            minio_access_key = os.getenv('MINIO_ACCESS_KEY', 'minioadmin')
+            
+        if minio_secret_key_file and os.path.exists(minio_secret_key_file):
+            with open(minio_secret_key_file, 'r') as f:
+                minio_secret_key = f.read().strip()
+        else:
+            minio_secret_key = os.getenv('MINIO_SECRET_KEY', 'minioadmin')
+            
         self.bucket_name = os.getenv('MINIO_BUCKET', 'prescriptions')
+
+        app.logger.info(f"Initializing MinIO with URL: {minio_url}, Bucket: {self.bucket_name}")
 
         self.client = Minio(
             minio_url,
@@ -22,26 +38,27 @@ class MinioHandler:
             secret_key=minio_secret_key,
             secure=False
         )
+        
         try:
+            buckets = list(self.client.list_buckets())
+            app.logger.info(f"MinIO connection successful. Found {len(buckets)} buckets")
             if not self.client.bucket_exists(self.bucket_name):
                 self.client.make_bucket(self.bucket_name)
                 app.logger.info(f"Created bucket: {self.bucket_name}")
+            else:
+                app.logger.info(f"Bucket {self.bucket_name} already exists")
+                
         except S3Error as e:
-            app.logger.error(f"Error creating bucket: {e}")
+            if e.code == 'AccessDenied':
+                app.logger.error(f"MinIO Access Denied - Check credentials and permissions. Error: {e}")
+            else:
+                app.logger.error(f"MinIO S3 Error: {e}")
+            raise
+        except Exception as e:
+            app.logger.error(f"MinIO connection failed: {e}")
             raise
 
     def upload_file(self, file_path, file_data, content_type=None):
-        """
-        Upload a file to MinIO
-        
-        Args:
-            file_path (str): The path where the file will be stored
-            file_data (bytes or file-like object): The file data to upload
-            content_type (str, optional): The content type of the file
-            
-        Returns:
-            str: The URL of the uploaded file
-        """
         try:
             if hasattr(file_data, 'read'):
                 file_data = file_data.read()
@@ -55,7 +72,7 @@ class MinioHandler:
             url = self.client.presigned_get_object(
                 self.bucket_name,
                 file_path,
-                expires=7*24*60*60  
+                expires=timedelta(days=7)  
             )
             
             return url
@@ -64,15 +81,6 @@ class MinioHandler:
             raise
 
     def delete_file(self, file_path):
-        """
-        Delete a file from MinIO
-        
-        Args:
-            file_path (str): The path of the file to delete
-            
-        Returns:
-            bool: True if the file was deleted, False otherwise
-        """
         try:
             self.client.remove_object(self.bucket_name, file_path)
             return True
