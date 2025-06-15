@@ -1,4 +1,3 @@
-# notes_api.py
 from flask import Blueprint, request, jsonify, current_app
 from utilities.keycloak_authentication import keycloak_token_required
 import json

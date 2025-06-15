@@ -7,7 +7,7 @@ from utilities.security_utils import InputValidator, rate_limit_decorator
 auth_bp = Blueprint('auth', __name__)
 
 @auth_bp.route('/auth/password', methods=['PUT'])
-@rate_limit_decorator(max_requests=5, per_seconds=300)  # 5 attempts per 5 minutes
+@rate_limit_decorator(max_requests=5, per_seconds=300) 
 @keycloak_token_required
 def update_password_via_site(user_id, roles):
     data = request.get_json()
@@ -83,12 +83,6 @@ def delete_account():
             keycloak_user_id = find_keycloak_user_by_email(user[2])
             if keycloak_user_id:
                 delete_result = delete_keycloak_user(keycloak_user_id)
-                if delete_result:
-                    print(f"Successfully deleted user from Keycloak with ID: {keycloak_user_id}")
-                else:
-                    print(f"Failed to delete user from Keycloak with ID: {keycloak_user_id}")
-            else:
-                print(f"No Keycloak user found with email: {user[2]}")
         except Exception as ke:
             print(f"Error deleting user from Keycloak: {str(ke)}")
         cur.execute(

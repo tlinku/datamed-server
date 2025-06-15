@@ -145,10 +145,6 @@ def add_prescription_no_pdf(user_id, roles):
     except Exception as e:
         if conn:
             conn.rollback()
-        print(f"Error in add_prescription_no_pdf: {str(e)}")
-        print(f"Error type: {type(e)}")
-        import traceback
-        print(f"Traceback: {traceback.format_exc()}")
         return jsonify({'error': str(e)}), 500
     finally:
         if cur:

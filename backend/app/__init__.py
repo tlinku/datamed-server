@@ -82,7 +82,6 @@ def create_app():
             maxconn=10,
             dsn=DATABASE_URL
         )
-        print("Database pool created successfully")
     except Exception as e:
         print(f"Error creating database pool: {e}")
         raise
@@ -96,9 +95,7 @@ def create_app():
         minio_handler = MinioHandler()
         minio_handler.init_app(app)
         app.config['MINIO_AVAILABLE'] = True
-        print("MinIO connection established")
     except Exception as e:
-        print(f"Error connecting to MinIO: {e}")
         app.config['MINIO_AVAILABLE'] = False
         minio_handler = None
     app.minio_handler = minio_handler

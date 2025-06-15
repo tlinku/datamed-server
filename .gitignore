@@ -1,8 +1,51 @@
+
 backend/utilities/__pycache__/authentication.cpython-310.pyc
 backend/utilities/__pycache__/__init__.cpython-310.pyc
 backend/app/routes/__pycache__/__init__.cpython-310.pyc
 backend/app/routes/__pycache__/auth.cpython-310.pyc
 backend/app/__pycache__/__init__.cpython-310.pyc
+
+# IDE files
 .idea
+
+# Security sensitive files
+.env
+*.key
+*.crt
+*.pem
+*.csr
 certyfikat.crt
-klucz_bez_hasla.keysecrets/
+klucz_bez_hasla.key
+secrets/
+ssl/
+
+# Logs
+*.log
+logs/
+
+# OS files
+.DS_Store
+Thumbs.db
+
+# Backup files
+*.bak
+*.backup
+*.tmp
+
+# Node modules
+node_modules/
+npm-debug.log*
+
+# Build directories
+build/
+dist/
+target/
+
+# Docker
+.dockerignore
+
+# Local environment files
+.env.local
+.env.development.local
+.env.test.local
+.env.production.local
