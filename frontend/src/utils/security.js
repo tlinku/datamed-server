@@ -133,7 +133,7 @@ export class SecurityUtils {
   static addCSPMeta() {
     const meta = document.createElement('meta');
     meta.httpEquiv = 'Content-Security-Policy';
-    meta.content = "default-src 'self'; script-src 'self' 'unsafe-inline'; style-src 'self' 'unsafe-inline'; img-src 'self' data:; connect-src 'self' http://localhost:5000 http://localhost:8080;";
+    meta.content = "default-src 'self'; script-src 'self' 'unsafe-inline'; style-src 'self' 'unsafe-inline'; img-src 'self' data:; connect-src 'self' https://localhost https://localhost/api https://localhost/auth;";
     document.head.appendChild(meta);
   }
 }

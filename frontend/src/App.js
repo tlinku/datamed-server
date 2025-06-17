@@ -18,10 +18,17 @@ function App() {
     
     initKeycloak(() => {
       setInitialized(true);
-      setAuthenticated(isAuthenticated());
+      const authStatus = isAuthenticated();
+      console.log('Keycloak initialized. Authenticated:', authStatus, 'Token exists:', !!getToken());
+      setAuthenticated(authStatus);
       setLoading(false);
     });
   }, []);
+
+  // Debug info
+  useEffect(() => {
+    console.log('App state - initialized:', initialized, 'authenticated:', authenticated, 'loading:', loading);
+  }, [initialized, authenticated, loading]);
 
   const handleLogin = () => {
     setLoading(true);
@@ -29,7 +36,7 @@ function App() {
   };
 
   const handleRegister = () => {
-    window.location.href = `${process.env.REACT_APP_KEYCLOAK_URL || 'http://localhost'}/auth/realms/${process.env.REACT_APP_KEYCLOAK_REALM || 'datamed'}/protocol/openid-connect/registrations?client_id=${process.env.REACT_APP_KEYCLOAK_CLIENT_ID || 'datamed-client'}&response_type=code&redirect_uri=${window.location.origin}`;
+    window.location.href = `${process.env.REACT_APP_KEYCLOAK_URL || 'https://localhost'}/auth/realms/${process.env.REACT_APP_KEYCLOAK_REALM || 'datamed'}/protocol/openid-connect/registrations?client_id=${process.env.REACT_APP_KEYCLOAK_CLIENT_ID || 'datamed-client'}&response_type=code&redirect_uri=${window.location.origin}`;
   };
 
 

@@ -1,0 +1,14 @@
+apiVersion: v1
+kind: ConfigMap
+metadata:
+  name: app-config
+data:
+  POSTGRES_USER: datamed
+  POSTGRES_DB: datamed
+  KEYCLOAK_ADMIN: admin
+  KEYCLOAK_URL: http://keycloak:8080
+  KEYCLOAK_REALM: datamed
+  KEYCLOAK_CLIENT_ID: datamed-client
+  MINIO_BUCKET: prescriptions
+  MAX_FILE_SIZE: "10485760"
+  ALLOWED_EXTENSIONS: pdf

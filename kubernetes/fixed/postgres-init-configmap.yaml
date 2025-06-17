@@ -1,0 +1,60 @@
+apiVersion: v1
+kind: ConfigMap
+metadata:
+  name: postgres-init-scripts
+data:
+  init.sql: |
+    CREATE TABLE IF NOT EXISTS prescriptions (
+        id SERIAL PRIMARY KEY,
+        user_id UUID NOT NULL, 
+        first_name VARCHAR(255) NOT NULL,
+        last_name VARCHAR(255) NOT NULL,
+        pesel VARCHAR(11) NOT NULL,
+        issue_date DATE NOT NULL,
+        expiry_date DATE NOT NULL,
+        pdf_url TEXT,
+        med_info_for_search TEXT,
+        created_at TIMESTAMP DEFAULT CURRENT_TIMESTAMP
+    );
+    CREATE TABLE IF NOT EXISTS notes (
+        id SERIAL PRIMARY KEY,
+        user_id UUID NOT NULL, 
+        note_name JSONB NOT NULL,
+        created_at TIMESTAMP DEFAULT CURRENT_TIMESTAMP
+    );
+    CREATE TABLE IF NOT EXISTS doctors (
+        id SERIAL PRIMARY KEY,
+        user_id UUID NOT NULL, 
+        first_name VARCHAR(255) NOT NULL,
+        last_name VARCHAR(255) NOT NULL,
+        specialty VARCHAR(255),
+        created_at TIMESTAMP DEFAULT CURRENT_TIMESTAMP
+    );
+    CREATE INDEX IF NOT EXISTS idx_prescriptions_user_id ON prescriptions(user_id);
+    CREATE INDEX IF NOT EXISTS idx_notes_user_id ON notes(user_id);
+    CREATE INDEX IF NOT EXISTS idx_doctors_user_id ON doctors(user_id);
+  create-multiple-postgresql-databases.sh: |
+    #!/bin/bash
+
+    set -e
+    set -u
+
+    function create_user_and_database() {
+        local database=$1
+        echo "Creating database '$database'"
+        psql -v ON_ERROR_STOP=1 --username "$POSTGRES_USER" <<-EOSQL
+            CREATE DATABASE $database;
+            GRANT ALL PRIVILEGES ON DATABASE $database TO $POSTGRES_USER;
+            \c $database
+            CREATE SCHEMA IF NOT EXISTS public;
+            GRANT ALL PRIVILEGES ON SCHEMA public TO $POSTGRES_USER;
+    EOSQL
+    }
+
+    if [ -n "$POSTGRES_MULTIPLE_DATABASES" ]; then
+        echo "Multiple database creation requested: $POSTGRES_MULTIPLE_DATABASES"
+        for db in $(echo $POSTGRES_MULTIPLE_DATABASES | tr ',' ' '); do
+            create_user_and_database $db
+        done
+        echo "Multiple databases created"
+    fi

@@ -17,67 +17,34 @@ secrets:
     file: ./secrets/token_key.txt
 
 services:
-  nginx:
-    build:
-      context: ./nginx
-    ports:
-      - "80:80"
-      - "443:443"
-      - "9001:9001"
-    secrets:
-      - datamed_ssl_cert
-      - datamed_ssl_key
-      - dhparam
-    volumes:
-      - type: bind
-        source: ./ssl
-        target: /etc/ssl/certs
-        read_only: true
-      - type: bind
-        source: ./ssl
-        target: /etc/ssl/private
-        read_only: true
-    depends_on:
-      - backend
-      - frontend
-      - keycloak
-      - minio
-    networks:
-      - datamed-network
-    healthcheck:
-      test: ["CMD", "curl", "-f", "http://localhost/health"]
-      interval: 30s
-      timeout: 10s
-      retries: 3
-      start_period: 40s
   backend:
     build:
       context: ./backend
       platforms:
         - linux/amd64
         - linux/arm64
+    ports:
+      - "5000:5000"
     secrets:
       - postgres_password
       - token_key
       - minio_access_key
       - minio_secret_key
-    env_file:
-      - .env
     environment:
       - FLASK_ENV=production
       - DATABASE_URL=postgresql://postgres@postgres:5432/datamed
       - TOKEN_KEY_FILE=/run/secrets/token_key
       - POSTGRES_PASSWORD_FILE=/run/secrets/postgres_password
       - POSTGRES_USER=postgres
-      - POSTGRES_DB=${POSTGRES_DB}
+      - POSTGRES_DB=datamed
       - MINIO_URL=http://minio:9000
       - MINIO_ACCESS_KEY_FILE=/run/secrets/minio_access_key
       - MINIO_SECRET_KEY_FILE=/run/secrets/minio_secret_key
-      - MINIO_BUCKET=${MINIO_BUCKET}
+      - MINIO_BUCKET=prescriptions
       - KEYCLOAK_URL=http://keycloak:8080
-      - KEYCLOAK_REALM=${KEYCLOAK_REALM}
-      - KEYCLOAK_CLIENT_ID=${KEYCLOAK_CLIENT_ID}
-      - KEYCLOAK_CLIENT_SECRET=${KEYCLOAK_CLIENT_SECRET}
+      - KEYCLOAK_REALM=datamed
+      - KEYCLOAK_CLIENT_ID=datamed-client
+      - KEYCLOAK_CLIENT_SECRET=
     volumes:
       - ./backend:/app
       - backend_logs:/app/logs
@@ -96,15 +63,20 @@ services:
       timeout: 5s
       retries: 3
       start_period: 10s
+    labels:
+      kompose.service.expose: "datamed.local"
+      kompose.service.expose.tls-secret: "datamed-tls"
   frontend:
     build:
       context: ./frontend
       platforms:
         - linux/amd64
         - linux/arm64
+    ports:
+      - "3000:3000"
     environment:
-      - REACT_APP_API_URL=https://localhost/api
-      - REACT_APP_KEYCLOAK_URL=https://localhost
+      - REACT_APP_API_URL=https://datamed.local/api
+      - REACT_APP_KEYCLOAK_URL=https://datamed.local
       - REACT_APP_KEYCLOAK_REALM=datamed
       - REACT_APP_KEYCLOAK_CLIENT_ID=datamed-client
     depends_on:
@@ -120,16 +92,17 @@ services:
       timeout: 5s
       retries: 3
       start_period: 10s
+    labels:
+      kompose.service.expose: "datamed.local"
+      kompose.service.expose.tls-secret: "datamed-tls"
   postgres:
     image: postgres:15
     secrets:
       - postgres_password
-    env_file:
-      - .env
     environment:
       - POSTGRES_USER=postgres
       - POSTGRES_PASSWORD_FILE=/run/secrets/postgres_password
-      - POSTGRES_DB=${POSTGRES_DB}
+      - POSTGRES_DB=datamed
       - POSTGRES_MULTIPLE_DATABASES=keycloak
     volumes:
       - postgres_data:/var/lib/postgresql/data
@@ -144,14 +117,14 @@ services:
       retries: 5
   minio:
     image: minio/minio
+    ports:
+      - "9001:9001"
     secrets:
       - minio_access_key
       - minio_secret_key
-    env_file:
-      - .env
     environment:
-      - MINIO_ROOT_USER=${MINIO_ACCESS_KEY}
-      - MINIO_ROOT_PASSWORD=${MINIO_SECRET_KEY}
+      - MINIO_ROOT_USER=datamed_7b0c570e1525c783
+      - MINIO_ROOT_PASSWORD=1644b322ce80cc54d96bc049819974cd65ff599235e861cc0bf5567c930a5193b
     entrypoint: ["/bin/sh", "-c", "/secrets-entrypoint.sh minio server /data --console-address ':9001'"]
     volumes:
       - minio_data:/data
@@ -164,31 +137,34 @@ services:
       timeout: 5s
       retries: 3
       start_period: 10s
+    labels:
+      kompose.service.expose: "minio.datamed.local"
+      kompose.service.expose.tls-secret: "datamed-tls"
   keycloak:
     image: quay.io/keycloak/keycloak:22.0.1
+    ports:
+      - "8080:8080"
     secrets:
       - keycloak_admin_password
       - postgres_password
-    env_file:
-      - .env
     environment:
-      - KEYCLOAK_ADMIN=${KEYCLOAK_ADMIN}
-      - KEYCLOAK_ADMIN_PASSWORD=${KEYCLOAK_ADMIN_PASSWORD}
+      - KEYCLOAK_ADMIN=admin
+      - KEYCLOAK_ADMIN_PASSWORD=cc419f95dfa5e1b457150348d7dd72438
       - KC_DB=postgres
       - KC_DB_URL=jdbc:postgresql://postgres:5432/keycloak
       - KC_DB_USERNAME=postgres
-      - KC_DB_PASSWORD=${POSTGRES_PASSWORD}
+      - KC_DB_PASSWORD=a48fef47da29ac22d1489912054316e
       - KC_HEALTH_ENABLED=true
       - KC_METRICS_ENABLED=true
-      - KC_SPI_CORS_DEFAULT_ALLOWED_ORIGINS=https://localhost
+      - KC_SPI_CORS_DEFAULT_ALLOWED_ORIGINS=https://datamed.local
       - KC_SPI_CORS_DEFAULT_ALLOWED_METHODS=GET,POST,PUT,DELETE,OPTIONS
       - KC_SPI_CORS_DEFAULT_ALLOWED_HEADERS=Authorization,Content-Type,Accept
       - KC_FEATURES=preview
       - KC_HTTP_RELATIVE_PATH=/auth
       - KC_HTTP_ENABLED=true
       - KC_PROXY=edge
-      - KC_HOSTNAME_URL=https://localhost/auth
-      - KC_HOSTNAME_ADMIN_URL=https://localhost/auth
+      - KC_HOSTNAME_URL=https://datamed.local/auth
+      - KC_HOSTNAME_ADMIN_URL=https://datamed.local/auth
     entrypoint: ["/bin/sh", "-c", "/secrets-entrypoint.sh keycloak start-dev --import-realm"]
     volumes:
       - ./realm-export.json:/opt/keycloak/data/import/realm-export.json
@@ -204,6 +180,9 @@ services:
       timeout: 5s
       retries: 3
       start_period: 30s
+    labels:
+      kompose.service.expose: "datamed.local"
+      kompose.service.expose.tls-secret: "datamed-tls"
 
 volumes:
   postgres_data:

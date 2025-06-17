@@ -33,7 +33,7 @@ export const initKeycloak = (onAuthenticatedCallback) => {
 
 
   const initOptions = hasAuthParams ? {
-    onLoad: 'login-required',
+    onLoad: 'check-sso',
     checkLoginIframe: false,
     pkceMethod: 'S256',
     redirectUri: window.location.origin,
@@ -90,6 +90,7 @@ export const initKeycloak = (onAuthenticatedCallback) => {
 export const doLogin = () => {
   return keycloak.login({
     redirectUri: window.location.origin,
+    scope: 'openid profile email'
   });
 };
 
@@ -97,7 +98,7 @@ export const doLogout = async (navigate) => {
   try {
     const token = getToken();
     if (token) {
-      await fetch(`${process.env.REACT_APP_API_URL || 'http://localhost:5000'}/auth/logout`, {
+      await fetch(`${process.env.REACT_APP_API_URL || 'https://localhost/api'}/auth/logout`, {
         method: 'POST',
         headers: {
           'Authorization': `Bearer ${token}`,
@@ -121,7 +122,12 @@ export const doLogout = async (navigate) => {
 
 export const getToken = () => keycloak.token;
 
-export const isAuthenticated = () => !!keycloak.token;
+export const isAuthenticated = () => {
+  const hasToken = !!keycloak.token;
+  const localStorageAuth = localStorage.getItem('isAuthenticated') === 'true';
+  console.log('isAuthenticated check - hasToken:', hasToken, 'localStorage:', localStorageAuth, 'keycloak.authenticated:', keycloak.authenticated);
+  return hasToken && !keycloak.isTokenExpired();
+};
 
 export const isTokenExpired = () => keycloak.isTokenExpired();
 

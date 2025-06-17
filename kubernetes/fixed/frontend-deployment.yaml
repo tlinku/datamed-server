@@ -1,0 +1,68 @@
+apiVersion: apps/v1
+kind: Deployment
+metadata:
+  annotations:
+    kompose.cmd: kompose convert -f docker-compose.yml -o kubernetes/
+    kompose.service.expose: datamed.local
+    kompose.service.expose.tls-secret: datamed-tls
+    kompose.version: 1.36.0 (HEAD)
+  labels:
+    io.kompose.service: frontend
+  name: frontend
+spec:
+  replicas: 2
+  selector:
+    matchLabels:
+      io.kompose.service: frontend
+  strategy:
+    type: Recreate
+  template:
+    metadata:
+      annotations:
+        kompose.cmd: kompose convert -f docker-compose.yml -o kubernetes/
+        kompose.service.expose: datamed.local
+        kompose.service.expose.tls-secret: datamed-tls
+        kompose.version: 1.36.0 (HEAD)
+      labels:
+        io.kompose.service: frontend
+    spec:
+      containers:
+        - env:
+            - name: REACT_APP_API_URL
+              value: https://localhost/api
+            - name: REACT_APP_KEYCLOAK_URL
+              value: https://localhost
+            - name: REACT_APP_KEYCLOAK_REALM
+              value: datamed
+            - name: REACT_APP_KEYCLOAK_CLIENT_ID
+              value: datamed-client
+          image: datamed-frontend:latest
+          imagePullPolicy: IfNotPresent
+          livenessProbe:
+            httpGet:
+              path: /
+              port: 3000
+            failureThreshold: 3
+            initialDelaySeconds: 30
+            periodSeconds: 10
+            timeoutSeconds: 5
+          readinessProbe:
+            httpGet:
+              path: /
+              port: 3000
+            failureThreshold: 3
+            initialDelaySeconds: 10
+            periodSeconds: 5
+            timeoutSeconds: 3
+          name: frontend
+          ports:
+            - containerPort: 3000
+              protocol: TCP
+          resources:
+            requests:
+              memory: "128Mi"
+              cpu: "100m"
+            limits:
+              memory: "256Mi"
+              cpu: "200m"
+      restartPolicy: Always

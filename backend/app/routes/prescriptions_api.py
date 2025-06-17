@@ -9,6 +9,21 @@ from utilities.security_utils import InputValidator, validate_file_upload, rate_
 
 prescriptions_bp = Blueprint('prescriptions', __name__)
 
+def get_minio_handler():
+    """Lazy initialization of MinIO handler"""
+    if current_app.minio_handler is None and current_app.config.get('MINIO_AVAILABLE', False):
+        try:
+            from utilities.minio_handler import MinioHandler
+            handler = MinioHandler()
+            handler.init_app(current_app)
+            current_app.minio_handler = handler
+            print("Debug: MinIO handler initialized on demand")
+        except Exception as e:
+            print(f"Debug: Failed to initialize MinIO on demand: {e}")
+            current_app.config['MINIO_AVAILABLE'] = False
+            current_app.minio_handler = None
+    return current_app.minio_handler
+
 UPLOAD_FOLDER = 'prescriptions'
 ALLOWED_EXTENSIONS = {'pdf'}
 
@@ -56,13 +71,13 @@ def add_prescription(user_id, roles):
         last_name = InputValidator.sanitize_string(data['last_name'])
         pesel = data['pesel']  
         med_info = InputValidator.sanitize_string(data.get('med_info_for_search', ''))
-        if not current_app.minio_handler:
-            return jsonify({'error': 'File storage service is currently unavailable'}), 503
+        if not get_minio_handler():
+            return jsonify({'error': 'File storage service is currently unavailable'}), 424
 
         timestamp = datetime.now().strftime('%Y%m%d_%H%M%S')
         filename = secure_filename(f"{user_id}_{timestamp}_{file.filename}")
         file_path = f"prescriptions/{user_id}/{filename}"
-        file_url = current_app.minio_handler.upload_file(
+        file_url = get_minio_handler().upload_file(
             file_path,
             file.read(),
             content_type="application/pdf"
@@ -204,11 +219,12 @@ def delete_prescription(user_id, roles, prescription_id):
         if not prescription:
             return jsonify({'error': 'Prescription not found'}), 404
 
-        if prescription[0] and current_app.minio_handler:
+        if prescription[0] and get_minio_handler():
             file_path = '/'.join(prescription[0].split('/')[-3:])
-            current_app.minio_handler.delete_file(file_path)
-        elif prescription[0] and not current_app.minio_handler:
+            get_minio_handler().delete_file(file_path)
+        elif prescription[0] and not get_minio_handler():
             current_app.logger.warning(f"Cannot delete file {prescription[0]} - MinIO unavailable")
+            return jsonify({'error': 'File storage service unavailable - cannot delete file'}), 424
 
         cur.execute("""
             DELETE FROM prescriptions 

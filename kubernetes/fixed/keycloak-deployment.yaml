@@ -1,0 +1,104 @@
+apiVersion: apps/v1
+kind: Deployment
+metadata:
+  annotations:
+    kompose.cmd: kompose convert -f docker-compose.yml -o kubernetes/
+    kompose.version: 1.36.0 (HEAD)
+  labels:
+    io.kompose.service: keycloak
+  name: keycloak
+spec:
+  replicas: 1
+  selector:
+    matchLabels:
+      io.kompose.service: keycloak
+  strategy:
+    type: Recreate
+  template:
+    metadata:
+      annotations:
+        kompose.cmd: kompose convert -f docker-compose.yml -o kubernetes/
+        kompose.version: 1.36.0 (HEAD)
+      labels:
+        io.kompose.service: keycloak
+    spec:
+      containers:
+        - env:
+            - name: KEYCLOAK_ADMIN
+              value: admin
+            - name: KEYCLOAK_ADMIN_PASSWORD
+              valueFrom:
+                secretKeyRef:
+                  name: app-secrets
+                  key: KEYCLOAK_ADMIN_PASSWORD
+            - name: KC_DB
+              value: postgres
+            - name: KC_DB_URL
+              value: jdbc:postgresql://postgres:5432/keycloak
+            - name: KC_DB_USERNAME
+              value: postgres
+            - name: KC_DB_PASSWORD
+              valueFrom:
+                secretKeyRef:
+                  name: app-secrets
+                  key: POSTGRES_PASSWORD
+            - name: KC_HEALTH_ENABLED
+              value: "true"
+            - name: KC_METRICS_ENABLED
+              value: "true"
+            - name: KC_SPI_CORS_DEFAULT_ALLOWED_ORIGINS
+              value: https://localhost
+            - name: KC_SPI_CORS_DEFAULT_ALLOWED_METHODS
+              value: GET,POST,PUT,DELETE,OPTIONS
+            - name: KC_SPI_CORS_DEFAULT_ALLOWED_HEADERS
+              value: Authorization,Content-Type,Accept
+            - name: KC_FEATURES
+              value: preview
+            - name: KC_HTTP_RELATIVE_PATH
+              value: /auth
+            - name: KC_HTTP_ENABLED
+              value: "true"
+            - name: KC_PROXY
+              value: edge
+            - name: KC_HOSTNAME_URL
+              value: https://localhost/auth
+            - name: KC_HOSTNAME_ADMIN_URL
+              value: https://localhost/auth
+            - name: KC_DB_POOL_INITIAL_SIZE
+              value: "1"
+            - name: KC_DB_POOL_MIN_SIZE
+              value: "1"
+            - name: KC_DB_POOL_MAX_SIZE
+              value: "5"
+          image: quay.io/keycloak/keycloak:22.0.1
+          command: ["/opt/keycloak/bin/kc.sh"]
+          args: ["start-dev", "--import-realm"]
+          livenessProbe:
+            httpGet:
+              path: /auth/health/live
+              port: 8080
+            failureThreshold: 3
+            initialDelaySeconds: 60
+            periodSeconds: 10
+            timeoutSeconds: 5
+          readinessProbe:
+            httpGet:
+              path: /auth/health/ready
+              port: 8080
+            failureThreshold: 3
+            initialDelaySeconds: 30
+            periodSeconds: 5
+            timeoutSeconds: 3
+          name: keycloak
+          ports:
+            - containerPort: 8080
+              protocol: TCP
+          volumeMounts:
+            - mountPath: /opt/keycloak/data/import/realm-export.json
+              name: keycloak-realm
+              subPath: realm-export.json
+      restartPolicy: Always
+      volumes:
+        - name: keycloak-realm
+          configMap:
+            name: keycloak-realm

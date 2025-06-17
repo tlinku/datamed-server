@@ -38,17 +38,17 @@ def create_app():
     @app.after_request
     def add_security_headers(response):
         response.headers['X-Content-Type-Options'] = 'nosniff'
-        response.headers['X-Frame-Options'] = 'DENY'
+        response.headers['X-Frame-Options'] = 'SAMEORIGIN'  # Changed from DENY to SAMEORIGIN for Keycloak integration
         response.headers['X-XSS-Protection'] = '1; mode=block'
         response.headers['Strict-Transport-Security'] = 'max-age=31536000; includeSubDomains'
-        response.headers['Content-Security-Policy'] = "default-src 'self'; script-src 'self' 'unsafe-inline'; style-src 'self' 'unsafe-inline'"
+        response.headers['Content-Security-Policy'] = "default-src 'self' https://localhost; script-src 'self' 'unsafe-inline'; style-src 'self' 'unsafe-inline'; connect-src 'self' https://localhost https://localhost/auth"
         response.headers['Referrer-Policy'] = 'strict-origin-when-cross-origin'
         return response
     
     CORS(app,
          supports_credentials=True,
          resources={r"/*": {
-             "origins": ["http://localhost:3000","http://0.0.0.0:5000"],
+             "origins": ["https://localhost","http://localhost:3000","http://0.0.0.0:5000"],
              "allow_headers": ["Content-Type", "Authorization"],
              "methods": ["GET", "POST", "PUT", "DELETE", "OPTIONS"],
              "expose_headers": ["Content-Type", "Authorization"],
@@ -56,11 +56,13 @@ def create_app():
              "send_wildcard": False,
              "intercept_exceptions": True
          }})
-    socketio = SocketIO(app, cors_allowed_origins=["http://localhost:3000", "http://0.0.0.0:5000"])
+    socketio = SocketIO(app, cors_allowed_origins=["https://localhost","http://localhost:3000", "http://0.0.0.0:5000"])
 
     app.wsgi_app = RequestLoggingMiddleware(app.wsgi_app)
-    token_key = read_secret('/run/secrets/token_key', 'TOKEN_KEY')
-    postgres_password = read_secret('/run/secrets/postgres_password', 'POSTGRES_PASSWORD')
+    
+    # Read secrets - try both K8s secret mount and environment variables
+    token_key = read_secret('/run/secrets/app/TOKEN_KEY', 'TOKEN_KEY')
+    postgres_password = read_secret('/run/secrets/app/POSTGRES_PASSWORD', 'POSTGRES_PASSWORD')
     
     app.config['TOKEN_KEY'] = token_key
     if not app.config['TOKEN_KEY']:
@@ -69,36 +71,62 @@ def create_app():
     app.config['KEYCLOAK_REALM'] = os.getenv('KEYCLOAK_REALM', 'datamed')
     app.config['KEYCLOAK_CLIENT_ID'] = os.getenv('KEYCLOAK_CLIENT_ID', 'datamed-client')
     app.config['KEYCLOAK_CLIENT_SECRET'] = os.getenv('KEYCLOAK_CLIENT_SECRET')
-    postgres_user = os.getenv('POSTGRES_USER', 'datamed')
+    
+    # Database configuration - use environment variables (set correctly in K8s)
+    postgres_user = os.getenv('POSTGRES_USER', 'postgres')
     postgres_db = os.getenv('POSTGRES_DB', 'datamed')
     DATABASE_URL = f"postgresql://{postgres_user}:{postgres_password}@postgres:5432/{postgres_db}"
     
     if not postgres_password:
         raise ValueError("No POSTGRES_PASSWORD set in environment or secrets")
+    
+    print(f"Debug: Connecting to PostgreSQL with user='{postgres_user}', db='{postgres_db}', host='postgres:5432'")
+    print(f"Debug: DATABASE_URL = postgresql://{postgres_user}:***@postgres:5432/{postgres_db}")
 
-    try:
-        app.db_pool = SimpleConnectionPool(
-            minconn=1,
-            maxconn=10,
-            dsn=DATABASE_URL
-        )
-    except Exception as e:
-        print(f"Error creating database pool: {e}")
-        raise
+    # Add retry logic for database connection
+    import time
+    max_retries = 5
+    retry_delay = 5
+    
+    for attempt in range(max_retries):
+        try:
+            app.db_pool = SimpleConnectionPool(
+                minconn=1,
+                maxconn=10,
+                dsn=DATABASE_URL
+            )
+            print("Debug: Database pool created successfully")
+            
+            # Test the connection
+            test_conn = app.db_pool.getconn()
+            with test_conn.cursor() as cur:
+                cur.execute("SELECT version();")
+                version = cur.fetchone()
+                print(f"Debug: PostgreSQL version: {version[0]}")
+            app.db_pool.putconn(test_conn)
+            print("Debug: Database connection test successful")
+            break
+            
+        except Exception as e:
+            print(f"Error creating database pool (attempt {attempt + 1}/{max_retries}): {e}")
+            print(f"Debug: Full error details: {type(e).__name__}: {str(e)}")
+            
+            if attempt < max_retries - 1:
+                print(f"Retrying in {retry_delay} seconds...")
+                time.sleep(retry_delay)
+            else:
+                print("All database connection attempts failed")
+                raise
 
-    app.register_blueprint(auth_bp)
-    app.register_blueprint(prescriptions_bp)
-    app.register_blueprint(doctors_bp)
-    app.register_blueprint(notes_bp)
-    minio_handler = None
-    try:
-        minio_handler = MinioHandler()
-        minio_handler.init_app(app)
-        app.config['MINIO_AVAILABLE'] = True
-    except Exception as e:
-        app.config['MINIO_AVAILABLE'] = False
-        minio_handler = None
-    app.minio_handler = minio_handler
+    app.register_blueprint(auth_bp, url_prefix='/api')
+    app.register_blueprint(prescriptions_bp, url_prefix='/api')
+    app.register_blueprint(doctors_bp, url_prefix='/api')
+    app.register_blueprint(notes_bp, url_prefix='/api')
+    print("Debug: Skipping MinIO initialization during startup...")
+    # Don't initialize MinIO during startup - set it to None
+    app.config['MINIO_AVAILABLE'] = True  # Allow lazy loading
+    app.minio_handler = None
+    print("Debug: MinIO will be initialized on first use (lazy loading)")
 
     @app.errorhandler(404)
     def not_found_error(error):
@@ -110,6 +138,16 @@ def create_app():
 
     @app.route('/health', methods=['GET'])
     def health_check():
-        return {'status': 'healthy'}, 200
+        try:
+            # Test database connection
+            conn = app.db_pool.getconn()
+            with conn.cursor() as cur:
+                cur.execute("SELECT 1")
+                cur.fetchone()
+            app.db_pool.putconn(conn)
+            return {'status': 'healthy', 'database': 'connected'}, 200
+        except Exception as e:
+            return {'status': 'unhealthy', 'database': 'disconnected', 'error': str(e)}, 500
 
+    print("Debug: Flask app and SocketIO created successfully")
     return app, socketio
